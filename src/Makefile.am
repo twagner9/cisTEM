@@ -316,6 +316,7 @@ bin_PROGRAMS =  cisTEM_job_control \
                 convert_binary_to_star \
                 convert_eer_to_mrc \
                 azimuthal_average \
+                BS_test \
                 normalize_stack \
                 print_stack_statistics \
                 combine_stacks_by_star \
@@ -841,6 +842,11 @@ azimuthal_average_SOURCES  = programs/azimuthal_average/azimuthal_average.cpp
 azimuthal_average_CXXFLAGS = $(WX_CPPFLAGS_BASE)
 azimuthal_average_CPPFLAGS = $(WX_CPPFLAGS_BASE)
 azimuthal_average_LDADD    = libcore.a $(WX_LIBS_BASE)
+
+BS_test_SOURCES = programs/BS_test/db_star_to_txt.cpp
+BS_test_CXXFLAGS = $(WX_CPPFLAGS_BASE)
+BS_test_CPPFLAGS = $(WX_CPPFLAGS_BASE)
+BS_test_LDADD = libcore.a $(WX_LIBS_BASE)
 
 multiply_two_stacks_SOURCES  = programs/multiply_two_stacks/multiply_two_stacks.cpp
 multiply_two_stacks_CXXFLAGS = $(WX_CPPFLAGS_BASE)
