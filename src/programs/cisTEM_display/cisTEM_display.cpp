@@ -26,7 +26,8 @@ bool DisplayApp::OnInit( ) {
             wxFileName filename(cmd_filename);
             filename.Normalize(wxPATH_NORM_LONG | wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE);
             cmd_full_filename = filename.GetFullPath( );
-            display_frame->cisTEMDisplayPanel->OpenFile(cmd_full_filename, cmd_full_filename);
+            wxString tabname  = filename.GetFullName( );
+            display_frame->cisTEMDisplayPanel->OpenFile(cmd_full_filename, tabname);
         }
     }
 
