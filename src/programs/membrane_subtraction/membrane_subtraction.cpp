@@ -41,9 +41,9 @@ void scale_and_subtract( );
 
 // Get all user inputs necessary for running the program
 void MembraneSubtraction::DoInteractiveUserInput( ) {
-    UserInput*  my_input              = new UserInput( );
-    std::string wanted_particle_stack = my_input->GetFilenameFromUser("Input image file name", "The name of the particle stack", "input_image.mrc", true);
-    std::string input_star_file       = my_input->GetFilenameFromUser("Input parameters file", "Enter the name of the input parameters file", "input_parameters.star", true);
+    UserInput*  my_input                            = new UserInput( );
+    std::string extracted_particle_members_filename = my_input->GetFilenameFromUser("Input text file containing particle positions", "The name of the text file containing all members of the class average", "extracted_particles.txt", true);
+    std::string input_star_file                     = my_input->GetFilenameFromUser("Input parameters file", "Enter the name of the input parameters file associated with the refinement package containing the extracted particle members of the class average", "input_parameters.star", true);
 
     /* This is an additional option that lets user's decide to put the images directly into memory or not; generally, you want to be able to do this, as it will
      * reduce the program's runtime, but if you have a very large stack but limited memory, it's not always feasible. So by adding this option,
@@ -69,7 +69,7 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
 #endif
 
     my_current_job.Reset(4);
-    my_current_job.ManualSetArguments("ttbi", wanted_particle_stack.c_str( ),
+    my_current_job.ManualSetArguments("ttbi", extracted_particle_members_filename.c_str( ),
                                       star_file.c_str( ),
                                       use_memory,
                                       max_threads);
@@ -87,10 +87,10 @@ bool DoCalculation( ) {
     float astigmatism_angle      = 0.0;
     float additional_phase_shift = 0.0;
 
-    std::string input_filename    = my_current_job.arguments[0].ReturnStringArgument( );
-    wxString    star_filename     = wxString(my_current_job.arguments[1].ReturnStringArgument( ));
-    bool        use_memory        = my_current_job.arguments[2].ReturnBoolArgument( );
-    int         number_of_threads = my_current_job.arguments[3].ReturnIntegerArgument( );
+    std::string extracted_particle_members_filename = my_current_job.arguments[0].ReturnStringArgument( );
+    wxString    star_filename                       = wxString(my_current_job.arguments[1].ReturnStringArgument( ));
+    bool        use_memory                          = my_current_job.arguments[2].ReturnBoolArgument( );
+    int         number_of_threads                   = my_current_job.arguments[3].ReturnIntegerArgument( );
 
     // Get the stack into usable form
     MRCFile input_stack(input_filename, false);
