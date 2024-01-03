@@ -34,8 +34,8 @@ typedef struct ctf_parameters {
  * declared just as <return_type> <function_name>.
  * This also means they can be called without being attached to an object
 */
-void generate_reference_image(Image* input_stack, Image* input_stack_times_ctf, MRCFile* input_file, ctf_parameters* ctf_params, int number_of_images, int); // Like azimuthal average, only using the 2D class .star
-void apply_ctf( );
+void generate_reference_image(Image* input_stack, Image* input_stack_times_ctf, MRCFile* input_file, ctf_parameters* ctf_params, int number_of_images, int); // Like azimuthal average, only using the 2D class .star -- also probably not needed
+void apply_ctf( ); // Probably unneeded
 void apply_shifts_and_rotations( );
 void scale_and_subtract( );
 
@@ -117,6 +117,7 @@ bool DoCalculation( ) {
     // Initialize CTF parameters to an array equal in size to the number of images we have
     ctf_parameters* ctf_params = new ctf_parameters(number_of_images);
     CTF             current_ctf;
+
     // Begs question of whether we even need the reciprocal space parameters?
     current_ctf.Init(acceleration_voltage, spherical_aberration, amplitude_contrast, defocus_1, defocus_2, astigmatism_angle, 0.0f, 0.5f, 0.0f, pixel_size, additional_phase_shift);
 
