@@ -17,6 +17,9 @@ typedef struct ctf_parameters {
     float acceleration_voltage; // keV
     float spherical_aberration; // mm
     float amplitude_contrast;
+    float psi;
+    float x_shift;
+    float y_shift;
     float defocus_1; // A
     float defocus_2; // A
     float astigmatism_angle; // degrees
@@ -43,7 +46,8 @@ void scale_and_subtract( );
 void MembraneSubtraction::DoInteractiveUserInput( ) {
     UserInput*  my_input                            = new UserInput( );
     std::string extracted_particle_members_filename = my_input->GetFilenameFromUser("Input text file containing particle positions", "The name of the text file containing all members of the class average", "extracted_particles.txt", true);
-    std::string input_star_file                     = my_input->GetFilenameFromUser("Input parameters file", "Enter the name of the input parameters file associated with the refinement package containing the extracted particle members of the class average", "input_parameters.star", true);
+    std::string input_mrc_filename                  = my_input->GetFilenameFromUser("Input particle stack", "The filename for the relevant .mrc file", "input.mrc", true);
+    std::string input_star_file                     = my_input->GetFilenameFromUser("Input parameters file", "Enter the name of the input parameters file associated with the refinement package containing the extracted particle members of the class average", "input_star_parameters.star", true);
 
     /* This is an additional option that lets user's decide to put the images directly into memory or not; generally, you want to be able to do this, as it will
      * reduce the program's runtime, but if you have a very large stack but limited memory, it's not always feasible. So by adding this option,
@@ -68,9 +72,10 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
 // This ends the directive, so #ifdef and #else (and other precompiler directives) are no longer sought by the compiler
 #endif
 
-    my_current_job.Reset(4);
-    my_current_job.ManualSetArguments("ttbi", extracted_particle_members_filename.c_str( ),
-                                      star_file.c_str( ),
+    my_current_job.Reset(5);
+    my_current_job.ManualSetArguments("tttbi", extracted_particle_members_filename.c_str( ),
+                                      input_mrc_filename.c_str( ),
+                                      input_star_file.c_str( ),
                                       use_memory,
                                       max_threads);
 }
@@ -78,48 +83,36 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
 // The main function that gets executed when the program is run
 // This will also contain calls to the forward declared functions above
 bool DoCalculation( ) {
-    float acceleration_voltage;
-    float spherical_aberration;
-    float amplitude_contrast;
-    float pixel_size;
-    float defocus_1              = 0.0;
-    float defocus_2              = 0.0;
-    float astigmatism_angle      = 0.0;
-    float additional_phase_shift = 0.0;
-
     std::string extracted_particle_members_filename = my_current_job.arguments[0].ReturnStringArgument( );
-    wxString    star_filename                       = wxString(my_current_job.arguments[1].ReturnStringArgument( ));
-    bool        use_memory                          = my_current_job.arguments[2].ReturnBoolArgument( );
-    int         number_of_threads                   = my_current_job.arguments[3].ReturnIntegerArgument( );
+    std::string input_stack_filename                = my_current_job.arguments[1].ReturnStringArgument( );
+    wxString    star_filename                       = wxString(my_current_job.arguments[2].ReturnStringArgument( ));
+    bool        use_memory                          = my_current_job.arguments[3].ReturnBoolArgument( );
+    int         number_of_threads                   = my_current_job.arguments[4].ReturnIntegerArgument( );
 
     // Get the stack into usable form
-    MRCFile input_stack(input_filename, false);
+    MRCFile input_stack(input_stack_filename, false);
     long    number_of_images = input_stack.ReturnNumberOfSlices( );
 
     // Get the star params into usable form
-    cisTEMParameters input_parameters;
-    input_parameters.ReadFromcisTEMStarFile(star_filename, true);
+    cisTEMParameters input_star_parameters;
+    input_star_parameters.ReadFromcisTEMStarFile(star_filename, true);
+
+    // Read in the extracted members
+    NumericTextFile particle_positions_list = new NumericTextFile(extracted_particle_members_filename, OPEN_TO_READ);
+    // TODO: add checks for list consitency with member count (the .mrc of class members length, I believe)
 
     // Check to see if the nubmer of images in the stack matches
     // the number of lines in the star file
-    if ( number_of_images != input_parameters.ReturnNumberofLines( ) ) {
+
+    // NOTE: this check does not work; the .star will probably have all members of the original stack, but we're
+    // only subtracting from the members of the class, so .star SHOULD have more lines
+    /*if ( number_of_images != input_star_parameters.ReturnNumberofLines( ) ) {
         SendError("Error: number of images in stack does not match number of lines in .star file.");
         DEBUG_ABORT;
-    }
+    }*/
 
-    // Now, access the star file and set parameter values in our program
-    acceleration_voltage = input_parameters.ReturnMicroscopeKv( );
-    pixel_size           = input_parameters.ReturnPixelSize( );
-    spherical_aberration = input_parameters.ReturnMicroscopeCs( );
-    amplitude_contrast   = input_parameters.ReturnAmplitudeContrast( );
-    // TODO: What else from params does not change that we can assign a value right here?
-
-    // Initialize CTF parameters to an array equal in size to the number of images we have
-    ctf_parameters* ctf_params = new ctf_parameters(number_of_images);
-    CTF             current_ctf;
-
-    // Begs question of whether we even need the reciprocal space parameters?
-    current_ctf.Init(acceleration_voltage, spherical_aberration, amplitude_contrast, defocus_1, defocus_2, astigmatism_angle, 0.0f, 0.5f, 0.0f, pixel_size, additional_phase_shift);
+    // Initialize CTF parameters to an array equal in size to the number of images we actually need
+    ctf_parameters* ctf_params = new ctf_parameters[particle_positions_list.ReturnNumberofLines( )];
 
     // These will allow us to track the amount of time the program takes to run, as well as individual steps;
     // especially useful for comparing between memory-allocation and no mem allocation runtimes
@@ -142,6 +135,9 @@ bool DoCalculation( ) {
     if ( use_memory ) {
         image_stack           = new Image[number_of_images];
         input_stack_times_ctf = new Image[number_of_images];
+        for ( int image_counter = 1; image_counter < number_of_images; image_counter++ ) {
+            image_stack.ReadSlice(&input_stack, image_counter);
+        }
     }
     else {
         image_stack           = nullptr;
@@ -159,5 +155,43 @@ bool DoCalculation( ) {
     wxTimeSpan time_to_read = read_frames_finish.Subtract(read_frames_start);
     wxPrintf("Read frames runtime: %s\n", time_to_read.Format( ));
 
+    // Read in CTF params
+    // Constants first, pulled from first line of star file
+    const float acceleration_voltage = input_star_parameters.ReturnMicroscopeKv(1);
+    const float spherical_aberration = input_star_parameters.ReturnMicroscopeCs(1);
+    const float pixel_size           = input_star_parameters.ReturnPixelSize(1);
+
+    float temp_float[1]; // Just temporarily stores each line from our .txt of extracted members
+
+    // Loop over .star for reading in the rest
+    for ( int particle_counter = 0; particle_counter < number_of_images; particle_counter++ ) {
+        ctf_params[particle_counter].acceleration_voltage = acceleration_voltage;
+        ctf_params[particle_counter].spherical_aberration = spherical_aberration;
+
+        ctf_params[particle_counter].pixel_size = pixel_size;
+
+        particle_positions_list.ReadLine(&temp_float);
+
+        ctf_params[particle_counter].psi                = input_star_parameters.ReturnPsi(temp_float[0]);
+        ctf_params[particle_counter].x_shift            = input_star_parameters.ReturnXShift(temp_float[0]);
+        ctf_params[particle_counter].y_shift            = input_star_parameters.ReturnYShift(temp_float[0]);
+        ctf_parame[particle_counter].defocus_1          = input_star_parameters.ReturnDefocus1(temp_float[0]);
+        ctf_params[particle_counter].defocus_2          = input_star_parameters.ReturnDefocus2(temp_float[0]);
+        ctf_params[particle_counter].astigmatism_angle  = input_star_parameters.ReturnDefocusAngle(temp_float[0]);
+        ctf_params[particle_counter].amplitude_contrast = input_star_parameters.ReturnAmplitudeContrast(temp_float[0]);
+
+        // Not needed?
+        ctf_params[particle_counter].lowest_frequency_for_fitting  = 0.0f;
+        ctf_params[particle_counter].highest_frequency_for_fitting = 0.5f;
+        ctf_params[particle_counter].astigmatism_tolerance         = 0.0f;
+        ctf_params[particle_counter].additional_phase_shift        = 0.0f;
+    }
+
+    CTF current_ctf;
+    if ( use_memory ) {
+        for ( int member_counter = 0; member_counter < number_of_images; member_counter++ ) {
+            current_ctf.Init(ctf_parameters_stack[member_counter].acceleration_voltage, ctf_parameters_stack[member_counter].spherical_aberration, ctf_parameters_stack[member_counter].amplitude_contrast, ctf_parameters_stack[member_counter].defocus_1, ctf_parameters_stack[member_counter].defocus_2, ctf_parameters_stack[member_counter].astigmatism_angle, ctf_parameters_stack[member_counter].lowest_frequency_for_fitting, ctf_parameters_stack[member_counter].highest_frequency_for_fitting, ctf_parameters_stack[member_counter].astigmatism_tolerance, ctf_parameters_stack[member_counter].pixel_size, ctf_parameters_stack[member_counter].additional_phase_shift);
+        }
+    }
     // TODO: Add function calls for performing rotations and shifts
 }
