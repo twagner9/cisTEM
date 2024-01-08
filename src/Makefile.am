@@ -320,6 +320,7 @@ bin_PROGRAMS =  cisTEM_job_control \
                 normalize_stack \
                 print_stack_statistics \
                 combine_stacks_by_star \
+                subtract_2d_class_average \
                 match_template \
                 refine_template \
                 make_template_result \
@@ -942,6 +943,11 @@ combine_stacks_by_star_SOURCES  = programs/combine_stacks_by_star/combine_stacks
 combine_stacks_by_star_CXXFLAGS = $(WX_CPPFLAGS_BASE)
 combine_stacks_by_star_CPPFLAGS = $(WX_CPPFLAGS_BASE)
 combine_stacks_by_star_LDADD    = libcore.a $(WX_LIBS_BASE)
+
+subtract_2d_class_average_SOURCES = programs/membrane_subtraction/membrane_subtraction.cpp
+subtract_2d_class_average_CXXFLAGS = $(WX_CPPFLAGS_BASE)
+subtract_2d_class_average_CPPFLAGS = $(WX_CPPFLAGS_BASE)
+subtract_2d_class_average_LDADD    = libcore.a $(WX_LIBS_BASE)
 
 samples_functional_testing_SOURCES  = programs/samples/samples_functional_testing.cpp 
 samples_functional_testing_SOURCES += programs/samples/common/helper_functions.cpp programs/samples/common/embedded_test_file.cpp programs/samples/common/numeric_test_file.cpp
