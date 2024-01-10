@@ -1,6 +1,11 @@
 #include "../../core/core_headers.h"
 #define TMP_DEBUG
 
+//TODO: DO need to write out the star file; will need this for importing back into cisTEM and for reading
+// Alternatively, we could read the classification in and go off of that?
+// Will need to look into how the Classification class is implemented
+// I suppose this raises the question of whether it's better to keep the .star writing and member extraction
+// separate from the main subtraction program
 class MembraneSubtraction : public MyApp {
   public:
     void DoInteractiveUserInput( );
@@ -43,6 +48,7 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
 IMPLEMENT_APP(MembraneSubtraction)
 
 // Get all user inputs necessary for running the program
+//FIXME: remove receiving .star filename
 void MembraneSubtraction::DoInteractiveUserInput( ) {
     UserInput*  my_input                    = new UserInput("Subtraction of 2D Class Averages", 1.00);
     std::string database_filename           = my_input->GetFilenameFromUser("Database filename that contains relevant classification", "cisTEM .db file containing the class average that should be subtracted", "input_database.db", true);
@@ -117,12 +123,19 @@ bool MembraneSubtraction::DoCalculation( ) {
     // This is the positions in the particle stack of all the class average members
     wxArrayLong class_members     = selected_db.Return2DClassMembers(classification_id, class_average_index);
     long        number_of_members = class_members.GetCount( );
+
+    // TODO: Write .star file, save name for reading in as params
     selected_db.Close(false);
 
-    // TODO: should we write out the members to a text file anyway so that we can check which frames are getting subtracted?
-    // In large stacks, it would be very tedious to find every frame that has a subtraction performed
-    // This is only true if we are subtracting in place from the original stack; if we only deal with the members, this
-    // becomes a non-issue
+    // Write member positions to a text file so they can be found within the stack when reviewing subtraction visually
+    std::ofstream my_file;
+    std::string   text_filename = "extracted_particles_" + std::to_string(classification_id) + "_" + std::to_string(class_average_index) + ".txt";
+    my_file.open(text_filename);
+
+    for ( int particle_counter = 0; particle_counter < class_members.GetCount( ); particle_counter++ )
+        my_file << class_members[particle_counter] << std::endl;
+
+    my_file.close( );
 
 #ifdef TMP_DEBUG
     wxPrintf("\nRead in class member array; number of members = %li\n", number_of_members);
@@ -187,7 +200,7 @@ bool MembraneSubtraction::DoCalculation( ) {
 #endif
 
     // TODO: Add function call for performing rotations and shifts
-    rotate_shift_scale_subtract(&particle_stack_mrc, &classification_mrc, &input_star_parameters, &class_members, class_average_index, number_of_images, number_of_members, number_of_threads);
+    align_scale_subtract(&particle_stack_mrc, &classification_mrc, &input_star_parameters, &class_members, class_average_index, number_of_images, number_of_members, number_of_threads);
 
     overall_finish            = wxDateTime::Now( );
     wxTimeSpan time_to_finish = overall_finish.Subtract(overall_start);
@@ -210,15 +223,14 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
     Image class_average_image;
     CTF   current_ctf;
     long  member_counter = 0;
-    long  image_counter  = 0;
-    long  pixel_counter  = 0;
+    long  image_counter;
+    long  pixel_counter;
     long  current_member;
 
     // For CTF
-    const float microscope_voltage     = ctf_params->ReturnMicroscopekV(1);
-    const float spherical_abberation   = ctf_params->ReturnMicroscopeCs(1);
-    const float pixel_size             = ctf_params->ReturnPixelSize(1);
-    const float additional_phase_shift = 0.0f;
+    const float microscope_voltage   = ctf_params->ReturnMicroscopekV(1);
+    const float spherical_abberation = ctf_params->ReturnMicroscopeCs(1);
+    const float pixel_size           = ctf_params->ReturnPixelSize(1);
     float       psi;
     float       x_shift;
     float       y_shift;
@@ -226,13 +238,14 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
     float       defocus_2;
     float       astigmatism_angle;
     float       amplitude_contrast;
+    float       additional_phase_shift;
 
     // For scaling
     double sum_of_pixelwise_product;
     double sum_of_squares;
     double scale_factor;
 
-#pragma omp parallel num_threads(max_threads) default(none) shared(class_average_index, class_members, microscope_voltage, spherical_abberation, pixel_size, additional_phase_shift, number_of_images, ctf_params, classification_mrc, particle_mrc) private(current_image, class_average_image, current_ctf, image_counter, member_counter, current_member, pixel_counter, psi, x_shift, y_shift, defocus_1, defocus_2, astigmatism_angle, amplitude_contrast, sum_of_pixelwise_product, sum_of_squares, scale_factor)
+#pragma omp parallel num_threads(max_threads) default(none) shared(class_average_index, class_members, microscope_voltage, spherical_abberation, pixel_size, number_of_images, ctf_params, classification_mrc, particle_mrc, member_counter) private(current_image, class_average_image, current_ctf, image_counter, current_member, pixel_counter, psi, x_shift, y_shift, defocus_1, defocus_2, astigmatism_angle, amplitude_contrast, additional_phase_shift, sum_of_pixelwise_product, sum_of_squares, scale_factor)
     { // start omp
 #pragma omp for ordered
         for ( image_counter = 0; image_counter < number_of_images; image_counter++ ) {
@@ -245,13 +258,14 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
                 current_member = class_members->Item(member_counter);
 
                 // Read in CTF
-                psi                = ctf_params->ReturnPsi(current_member);
-                x_shift            = ctf_params->ReturnXShift(current_member);
-                y_shift            = ctf_params->ReturnYShift(current_member);
-                defocus_1          = ctf_params->ReturnDefocus1(current_member);
-                defocus_2          = ctf_params->ReturnDefocus2(current_member);
-                astigmatism_angle  = ctf_params->ReturnDefocusAngle(current_member);
-                amplitude_contrast = ctf_params->ReturnAmplitudeContrast(current_member);
+                psi                    = ctf_params->ReturnPsi(current_member);
+                x_shift                = ctf_params->ReturnXShift(current_member);
+                y_shift                = ctf_params->ReturnYShift(current_member);
+                defocus_1              = ctf_params->ReturnDefocus1(current_member);
+                defocus_2              = ctf_params->ReturnDefocus2(current_member);
+                astigmatism_angle      = ctf_params->ReturnDefocusAngle(current_member);
+                amplitude_contrast     = ctf_params->ReturnAmplitudeContrast(current_member);
+                additional_phase_shift = ctf_params->ReturnPhaseShift(current_member);
 
                 //Apply to class average
                 current_ctf.Init(microscope_voltage, spherical_abberation, amplitude_contrast, defocus_1, defocus_2, astigmatism_angle, pixel_size, additional_phase_shift);
@@ -259,6 +273,10 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
                 class_average_image.ZeroCentralPixel( );
                 class_average_image.ApplyCTF(current_ctf);
                 class_average_image.BackwardFFT( );
+
+                // Alignment
+                class_average_image.Rotate2DInPlace(psi);
+                class_average_image.PhaseShift(x_shift, y_shift);
 
                 // All shifts and rotations applied, now scale: A * B / A * A
                 // A is class average, B is current image
@@ -273,6 +291,7 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
 
                 // Reset the class average so CTF isn't applied still during the next round as this would apply 2 CTFs at once
                 class_average_image.ReadSlice(classification_mrc, class_average_index);
+#pragma omp critical
                 ++member_counter; // increment so that we advance to the next memeber of the class for subtraction when doing if comparison
             }
 #pragma omp ordered
