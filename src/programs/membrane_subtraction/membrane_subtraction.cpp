@@ -18,20 +18,18 @@ IMPLEMENT_APP(MembraneSubtraction)
 
 // Get all user inputs necessary for running the program
 void MembraneSubtraction::DoInteractiveUserInput( ) {
-    UserInput*  my_input                    = new UserInput("Subtraction of 2D Class Averages", 1.00);
-    std::string database_filename           = my_input->GetFilenameFromUser("Database filename that contains relevant classification", "cisTEM .db file containing the class average that should be subtracted", "input_database.db", true);
-    int         classification_id           = my_input->GetIntFromUser("Input the classification ID that contains the class average for subtraction", "Class ID of class average being used for subtraction", "1");
+    UserInput*  my_input          = new UserInput("Subtraction of 2D Class Averages", 1.00);
+    std::string database_filename = my_input->GetFilenameFromUser("Database filename that contains relevant classification", "cisTEM .db file containing the class average that should be subtracted", "input_database.db", true);
+    int         classification_id = my_input->GetIntFromUser("Input the classification ID that contains the class average for subtraction", "Class ID of class average being used for subtraction", "1");
+    // TODO: instead of receiving an index, receive a text file that contains all of the class averages that we want to subtract
+    // Then read into an array, and loop over this in the main function so that we subtract all the averages the user wants to subtract...may require memory access...
+    // Have to figure out if each class must have different members -- if not need to use memory
     int         class_average_index         = my_input->GetIntFromUser("Enter the position of the class average in the classification mrc that is needed for subtraction", "The index of the class average within its classification", "1");
     std::string particle_stack_filename     = my_input->GetFilenameFromUser("Input particle stack", "The filename for the relevant .mrc file", "input.mrc", true);
     std::string classification_mrc_filename = my_input->GetFilenameFromUser("Input the relevant classification containing the class average for subtraction", "Classifications have multiple 2D class averages within them; provide the file of the relevant classification.", "class_averages.mrc", true);
 
     int max_threads;
 
-/* This #ifdef is called a precompiler directive, and is sought by the compiler before compiling actually begins.
- * OpenMP is a library that cisTEM uses for parallelizing code (i.e., using multiple threads), and
- * we can define it when we call the configure script in the build directory with:
- * ./configure --enable-openmp
-*/
 #ifdef _OPENMP
     max_threads = my_input->GetIntFromUser("Max number of threads", "The maximum number of threads to be used during calculations", "1");
 #else
@@ -208,8 +206,9 @@ void align_scale_subtract(MRCFile* particle_mrc, MRCFile* classification_mrc, ci
                 class_average_image.BackwardFFT( );
 
                 // Align
-                class_average_image.Rotate2DInPlace(psi);
-                class_average_image.PhaseShift(x_shift, y_shift);
+                class_average_image.PhaseShift(-x_shift, -y_shift);
+                class_average_image.Rotate2DInPlace(-psi);
+                class_average_image.QuickAndDirtyWriteSlice("aligned_ctf_average.mrc", current_member);
 
                 // Scale: A * B / A * A
                 // A is class average, B is current image
