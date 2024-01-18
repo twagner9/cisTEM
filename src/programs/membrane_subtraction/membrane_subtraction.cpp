@@ -15,6 +15,8 @@ class MembraneSubtraction : public MyApp {
 // NOTE: made to ensure proper association of the class_average_index and its members
 typedef struct ClassAveragesAndMembers {
     int         class_average_index;
+    long        number_of_members;
+    long        member_counter = 0;
     wxArrayLong class_members;
 } ClassAveragesAndMembers;
 
@@ -31,8 +33,8 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
     std::string particle_stack_filename        = my_input->GetFilenameFromUser("Input particle stack", "The filename for the relevant .mrc file", "input.mrc", true);
     std::string classification_mrc_filename    = my_input->GetFilenameFromUser("Input the relevant classification containing the class average for subtraction", "Classifications have multiple 2D class averages within them; provide the file of the relevant classification.", "class_averages.mrc", true);
 
-    int max_threads;
-    /*
+    /*int max_threads;
+    
 #ifdef _OPENMP
     max_threads = my_input->GetIntFromUser("Max number of threads", "The maximum number of threads to be used during calculations", "1");
 #else
@@ -43,13 +45,12 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
 */
     delete my_input;
 
-    my_current_job.Reset(6);
-    my_current_job.ManualSetArguments("tittti", database_filename.c_str( ),
+    my_current_job.Reset(5);
+    my_current_job.ManualSetArguments("tittt", database_filename.c_str( ),
                                       classification_id,
                                       class_average_indices_filename.c_str( ),
                                       particle_stack_filename.c_str( ),
-                                      classification_mrc_filename.c_str( ),
-                                      max_threads);
+                                      classification_mrc_filename.c_str( ));
 }
 
 // This function is main -- does actual execution
@@ -60,7 +61,6 @@ bool MembraneSubtraction::DoCalculation( ) {
     std::string class_average_indices_filename = my_current_job.arguments[2].ReturnStringArgument( );
     std::string particle_stack_filename        = my_current_job.arguments[3].ReturnStringArgument( );
     std::string classifications_mrc_filename   = my_current_job.arguments[4].ReturnStringArgument( );
-    int         number_of_threads              = my_current_job.arguments[5].ReturnIntegerArgument( );
 
     wxDateTime overall_start = wxDateTime::Now( );
     wxDateTime overall_finish;
@@ -86,6 +86,7 @@ bool MembraneSubtraction::DoCalculation( ) {
         class_average_indices_list->ReadLine(tmp_float);
         list_of_averages_and_members[average_counter].class_average_index = long(tmp_float[0]);
         list_of_averages_and_members[average_counter].class_members       = selected_db.Return2DClassMembers(classification_id, tmp_float[0]);
+        list_of_averages_and_members[average_counter].number_of_members   = list_of_averages_and_members[average_counter].class_members.GetCount( );
     }
 
 #ifdef TMP_DEBUG
@@ -217,12 +218,14 @@ void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, ci
                     class_average_image.BackwardFFT( );
 
                     // Align
-                    class_average_image.Rotate2DInPlace(-psi);
+                    class_average_image.Rotate2DInPlace(psi);
                     class_average_image.PhaseShift(-x_shift, -y_shift);
                     class_average_image.QuickAndDirtyWriteSlice("aligned_ctf_average.mrc", image_counter + 1);
 
                     // Scale: A * B / A * A
                     // A is class average, B is current image
+                    sum_of_pixelwise_product = 0;
+                    sum_of_squares           = 0;
                     for ( pixel_counter = 0; pixel_counter < class_average_image.number_of_real_space_pixels; pixel_counter++ ) {
                         sum_of_pixelwise_product += class_average_image.real_values[pixel_counter] * current_image.real_values[pixel_counter];
                         sum_of_squares += class_average_image.real_values[pixel_counter] * class_average_image.real_values[pixel_counter];
