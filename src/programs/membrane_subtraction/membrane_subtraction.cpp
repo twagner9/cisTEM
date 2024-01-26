@@ -16,12 +16,12 @@ typedef struct ClassAveragesAndMembers {
     long        number_of_members;
     long        member_counter = 0;
     wxArrayLong class_members;
-    bool        remade_average_is_written = false;
 } ClassAveragesAndMembers;
 
-void align_scale_subtract(MRCFile& particle_mrc, Image* raw_averages_to_subtract, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int number_of_averages, long number_of_images);
+void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Image* raw_sums, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int number_of_averages, long number_of_images, bool create_sums);
 void apply_ctf(Image& current_image, CTF& ctf_to_apply, float* ctf_sum_of_squares, bool absolute = false);
 void divide_by_ctf_sum_of_squares(Image& current_image, float* ctf_sum_of_squares);
+void normalize_image(Image* input_image, float pixel_size, float mask_falloff);
 
 IMPLEMENT_APP(MembraneSubtraction)
 
@@ -32,8 +32,12 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
     int         classification_id              = my_input->GetIntFromUser("Input the classification ID that contains the class average for subtraction", "Class ID of class average being used for subtraction", "1");
     std::string class_average_indices_filename = my_input->GetFilenameFromUser("Enter the filename containing all of the class averages to subtracted", "File should contain integer values (single line each) that represent the 2D class average index", "class_average_indices.txt", true);
     std::string particle_stack_filename        = my_input->GetFilenameFromUser("Input particle stack", "The filename for the relevant .mrc file", "input.mrc", true);
-    std::string classification_mrc_filename    = my_input->GetFilenameFromUser("Input the relevant classification containing the class average for subtraction", "Classifications have multiple 2D class averages within them; provide the file of the relevant classification.", "class_averages.mrc", true);
-
+    bool        create_sums                    = my_input->GetYesNoFromUser("Generate raw sums from particle stack?", "Decides whether raw sums will be used for subtraction instead of class averages.", "No");
+    std::string classification_mrc_filename;
+    if ( ! create_sums )
+        classification_mrc_filename = my_input->GetFilenameFromUser("Input the relevant classification containing the class average for subtraction", "Classifications have multiple 2D class averages within them; provide the file of the relevant classification.", "class_averages.mrc", true);
+    else
+        classification_mrc_filename = "";
     /*int max_threads;
     
 #ifdef _OPENMP
@@ -46,12 +50,13 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
 */
     delete my_input;
 
-    my_current_job.Reset(5);
-    my_current_job.ManualSetArguments("tittt", database_filename.c_str( ),
+    my_current_job.Reset(6);
+    my_current_job.ManualSetArguments("titttb", database_filename.c_str( ),
                                       classification_id,
                                       class_average_indices_filename.c_str( ),
                                       particle_stack_filename.c_str( ),
-                                      classification_mrc_filename.c_str( ));
+                                      classification_mrc_filename.c_str( ),
+                                      create_sums);
 }
 
 // This function is main -- does actual execution
@@ -62,6 +67,7 @@ bool MembraneSubtraction::DoCalculation( ) {
     std::string class_average_indices_filename = my_current_job.arguments[2].ReturnStringArgument( );
     std::string particle_stack_filename        = my_current_job.arguments[3].ReturnStringArgument( );
     std::string classifications_mrc_filename   = my_current_job.arguments[4].ReturnStringArgument( );
+    bool        create_sums                    = my_current_job.arguments[5].ReturnBoolArgument( );
 
     wxDateTime overall_start = wxDateTime::Now( );
     wxDateTime overall_finish;
@@ -120,12 +126,17 @@ bool MembraneSubtraction::DoCalculation( ) {
     wxPrintf("About to read in particle stack and classification MRCs\n");
 #endif
     // Read in necessary .mrc(s) files
-    MRCFile    particle_stack_mrc(particle_stack_filename, false);
-    MRCFile    classification_mrc(classifications_mrc_filename, false);
+    MRCFile particle_stack_mrc(particle_stack_filename);
+    MRCFile classification_mrc;
+    if ( ! create_sums )
+        classification_mrc = new MRCFile(classifications_mrc_filename);
     const long number_of_images = particle_stack_mrc.ReturnNumberOfSlices( );
 
 #ifdef TMP_DEBUG
-    wxPrintf("MRCs read in; number of images = %li; now read in .STAR params\n", number_of_images);
+    if ( ! create_sums )
+        wxPrintf("MRCs read in; number of images = %li; now read in .STAR params\n", number_of_images);
+    else
+        wxPrintf("MRCs read in; number of images = %li; now read in .STAR params and generate sums\n", number_of_images);
 #endif
 
     // Read in CTF params
@@ -138,78 +149,85 @@ bool MembraneSubtraction::DoCalculation( ) {
         DEBUG_ABORT;
     }
 
+    Image* aligned_sum_images;
     // Recreate the class average from the particle stack
-    Image       current_test_average;
-    Image       current_image;
-    const float microscope_voltage     = input_star_parameters.ReturnMicroscopekV(0);
-    const float spherical_abberation   = input_star_parameters.ReturnMicroscopeCs(0);
-    const float pixel_size             = input_star_parameters.ReturnPixelSize(0);
-    const float additional_phase_shift = input_star_parameters.ReturnPhaseShift(0); // Only non-const if phase plate is used?
-    float       psi;
-    float       x_shift;
-    float       y_shift;
-    float       defocus_1;
-    float       defocus_2;
-    float       astigmatism_angle;
-    float       amplitude_contrast;
-    CTF         tmp_ctf;
+    if ( create_sums ) {
+        Image       current_test_average;
+        Image       current_image;
+        const float microscope_voltage     = input_star_parameters.ReturnMicroscopekV(0);
+        const float spherical_abberation   = input_star_parameters.ReturnMicroscopeCs(0);
+        const float pixel_size             = input_star_parameters.ReturnPixelSize(0);
+        const float additional_phase_shift = input_star_parameters.ReturnPhaseShift(0); // Only non-const if phase plate is used?
+        float       psi;
+        float       x_shift;
+        float       y_shift;
+        float       defocus_1;
+        float       defocus_2;
+        float       astigmatism_angle;
+        float       amplitude_contrast;
+        CTF         tmp_ctf;
 
-    current_image.ReadSlice(&particle_stack_mrc, 1);
-    current_test_average.Allocate(current_image.logical_x_dimension, current_image.logical_y_dimension, false);
+        current_image.ReadSlice(&particle_stack_mrc, 1);
+        current_test_average.Allocate(current_image.logical_x_dimension, current_image.logical_y_dimension, false);
 
-    float* ctf_sum_of_squares_array = new float[current_image.real_memory_allocated / 2];
+        float* ctf_sum_of_squares_array = new float[current_image.real_memory_allocated / 2];
 
-    Image* tmp_averages = new Image[number_of_averages];
+        aligned_sum_images = new Image[number_of_averages];
 
-    // Hate to do it, but must loop over full stack for each average to get proper sums
-    for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
-        current_test_average.SetToConstant(0.0);
-        ZeroFloatArray(ctf_sum_of_squares_array, current_image.real_memory_allocated / 2);
-        while ( list_of_averages_and_members[average_counter].member_counter < list_of_averages_and_members[average_counter].number_of_members ) {
-            // Get needed image
-            current_image.ReadSlice(&particle_stack_mrc, list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter));
+        // Loop over the averages, reading in and summing only needed images
+        for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
+            current_test_average.SetToConstant(0.0);
+            ZeroFloatArray(ctf_sum_of_squares_array, current_image.real_memory_allocated / 2);
+            while ( list_of_averages_and_members[average_counter].member_counter < list_of_averages_and_members[average_counter].number_of_members ) {
+                // Get needed image
+                current_image.ReadSlice(&particle_stack_mrc, list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter));
 
-            // Get params
-            psi                = input_star_parameters.ReturnPsi(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
-            x_shift            = input_star_parameters.ReturnXShift(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
-            y_shift            = input_star_parameters.ReturnYShift(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
-            defocus_1          = input_star_parameters.ReturnDefocus1(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
-            defocus_2          = input_star_parameters.ReturnDefocus2(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
-            astigmatism_angle  = input_star_parameters.ReturnDefocusAngle(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
-            amplitude_contrast = input_star_parameters.ReturnAmplitudeContrast(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                // Get params
+                psi                = input_star_parameters.ReturnPsi(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                x_shift            = input_star_parameters.ReturnXShift(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                y_shift            = input_star_parameters.ReturnYShift(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                defocus_1          = input_star_parameters.ReturnDefocus1(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                defocus_2          = input_star_parameters.ReturnDefocus2(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                astigmatism_angle  = input_star_parameters.ReturnDefocusAngle(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
+                amplitude_contrast = input_star_parameters.ReturnAmplitudeContrast(list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1);
 
-            tmp_ctf.Init(microscope_voltage, spherical_abberation, amplitude_contrast, defocus_1, defocus_2, astigmatism_angle, pixel_size, additional_phase_shift);
+                tmp_ctf.Init(microscope_voltage, spherical_abberation, amplitude_contrast, defocus_1, defocus_2, astigmatism_angle, pixel_size, additional_phase_shift);
 
-            // Ready image for summing
-            current_image.ForwardFFT( );
-            current_image.ZeroCentralPixel( );
-            apply_ctf(current_image, tmp_ctf, ctf_sum_of_squares_array);
-            current_image.BackwardFFT( );
-            current_image.Rotate2DInPlace(psi);
-            current_image.ForwardFFT( );
-            current_image.PhaseShift(-x_shift, -y_shift);
+                // Ready image for summing
+                current_image.ForwardFFT( );
+                current_image.ZeroCentralPixel( );
+                apply_ctf(current_image, tmp_ctf, ctf_sum_of_squares_array);
+                current_image.BackwardFFT( );
+                current_image.Rotate2DInPlace(-psi);
+                current_image.ForwardFFT( );
+                current_image.PhaseShift(x_shift, y_shift);
 
-            // Sum and increment
-            current_test_average.AddImage(&current_image);
-            list_of_averages_and_members[average_counter].member_counter++;
+                // Sum and increment
+                current_test_average.AddImage(&current_image);
+                list_of_averages_and_members[average_counter].member_counter++;
+            }
+
+            // Sum is complete; remove CTF, add to array, continue to next
+            divide_by_ctf_sum_of_squares(current_test_average, ctf_sum_of_squares_array);
+            current_test_average.BackwardFFT( );
+            aligned_sum_images[average_counter] = &current_test_average; // In complex space at this point
         }
 
-        // Average is done; remove CTF, add to array, continue to next
-        divide_by_ctf_sum_of_squares(current_test_average, ctf_sum_of_squares_array);
-        tmp_averages[average_counter] = &current_test_average; // In complex space at this point
+        // Reset counters to 0 for subtraction
+        for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
+            list_of_averages_and_members[average_counter].member_counter = 0;
+            aligned_sum_images[average_counter].QuickAndDirtyWriteSlice("raw_averages.mrc", average_counter + 1);
+        }
     }
-
-    // Reset counters to 0 for subtraction
-    for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
-        list_of_averages_and_members[average_counter].member_counter = 0;
-        tmp_averages[average_counter].QuickAndDirtyWriteSlice("raw_averages.mrc", average_counter + 1);
+    else {
+        aligned_sum_images = nullptr;
     }
 
 #ifdef TMP_DEBUG
     wxPrintf("STAR file read; now about to enter rotate_shift_scale_subtract.\n");
 #endif
 
-    align_scale_subtract(particle_stack_mrc, tmp_averages, input_star_parameters, list_of_averages_and_members, number_of_averages, number_of_images);
+    align_scale_subtract(particle_stack_mrc, classification_mrc, aligned_sum_images, input_star_parameters, list_of_averages_and_members, number_of_averages, number_of_images, create_sums);
 
     overall_finish            = wxDateTime::Now( );
     wxTimeSpan time_to_finish = overall_finish.Subtract(overall_start);
@@ -222,13 +240,15 @@ bool MembraneSubtraction::DoCalculation( ) {
  * @brief Aligns the class average, scales it, and then subtracts it from the full stack.
  * 
  * @param particle_mrc Particle stack associated with the refinement package that contains the needed classification
- * @param raw_averages_to_subtract Re-made averages that lack filtering applied by cisTEM 2D classification
+ * @param classification_mrc Contains class averages contained in the classification; used for subtraction
+ * @param raw_sums Re-made averages that lack filtering applied by cisTEM 2D classification
  * @param ctf_params CTF parameters read in from .star file
  * @param class_members Array containing the list of all the members
  * @param list_of_averages_and_members Vector containing the grouped class averages and their included members
  * @param number_of_images Number of images in the full particle stack
+ * @param create_sums Determines whether averages or sums generated from particle stack will be used for subtraction
  */
-void align_scale_subtract(MRCFile& particle_mrc, Image* raw_averages_to_subtract, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int number_of_averages, long number_of_images) {
+void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Image* raw_sums, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int number_of_averages, long number_of_images, bool create_sums) {
     Image current_image;
     Image class_average_image;
     CTF   current_ctf;
@@ -242,7 +262,7 @@ void align_scale_subtract(MRCFile& particle_mrc, Image* raw_averages_to_subtract
     const float microscope_voltage     = ctf_params.ReturnMicroscopekV(0);
     const float spherical_abberation   = ctf_params.ReturnMicroscopeCs(0);
     const float pixel_size             = ctf_params.ReturnPixelSize(0);
-    const float additional_phase_shift = ctf_params.ReturnPhaseShift(0); // Only non-const if phase plate is used?
+    const float additional_phase_shift = ctf_params.ReturnPhaseShift(0); // Only non-const if phase plate is used
     float       psi;
     float       x_shift;
     float       y_shift;
@@ -264,7 +284,11 @@ void align_scale_subtract(MRCFile& particle_mrc, Image* raw_averages_to_subtract
         for ( int class_average_counter = 0; class_average_counter < number_of_averages; class_average_counter++ ) {
             if ( list_of_averages_and_members[class_average_counter].member_counter < list_of_averages_and_members[class_average_counter].number_of_members ) {
                 if ( list_of_averages_and_members[class_average_counter].class_members.Item(list_of_averages_and_members[class_average_counter].member_counter) - 1 == image_counter ) {
-                    class_average_image.CopyFrom(&raw_averages_to_subtract[class_average_counter]);
+                    if ( ! create_sums ) {
+                        class_average_image.ReadSlice(&classification_mrc, list_of_averages_and_members[class_average_counter].class_average_index);
+                    }
+                    else
+                        class_average_image.CopyFrom(&raw_sums[class_average_counter]);
 
                     // -1 because the cisTEMParameters class contains an array of all params -- this means 0 indexing
                     current_member = list_of_averages_and_members[class_average_counter].class_members.Item(list_of_averages_and_members[class_average_counter].member_counter) - 1;
@@ -278,8 +302,9 @@ void align_scale_subtract(MRCFile& particle_mrc, Image* raw_averages_to_subtract
                     astigmatism_angle  = ctf_params.ReturnDefocusAngle(current_member);
                     amplitude_contrast = ctf_params.ReturnAmplitudeContrast(current_member);
 
-                    //Apply to class average
+                    // Apply to class average
                     current_ctf.Init(microscope_voltage, spherical_abberation, amplitude_contrast, defocus_1, defocus_2, astigmatism_angle, pixel_size, additional_phase_shift);
+                    class_average_image.ForwardFFT( );
                     class_average_image.ZeroCentralPixel( );
                     class_average_image.ApplyCTF(current_ctf);
                     class_average_image.BackwardFFT( );
@@ -289,6 +314,7 @@ void align_scale_subtract(MRCFile& particle_mrc, Image* raw_averages_to_subtract
                     class_average_image.ForwardFFT( );
                     class_average_image.PhaseShift(-x_shift, -y_shift);
                     class_average_image.BackwardFFT( );
+
                     class_average_image.QuickAndDirtyWriteSlice("aligned_ctf_average.mrc", image_counter + 1);
 
                     // Scale: A * B / A * A
@@ -389,3 +415,40 @@ void divide_by_ctf_sum_of_squares(Image& current_image, float* ctf_sum_of_square
         }
     }
 }
+
+void normalize_image(Image* input_image, float pixel_size, float mask_falloff) {
+    // Normalize background variance and average
+    float variance;
+    float average;
+
+    // subtract mean value from each image pixel to get a zero-mean
+    // divide each pixel value by standard deviation to have unit-variance
+    variance = input_image->ReturnVarianceOfRealValues(input_image->physical_address_of_box_center_x - (mask_falloff / pixel_size), 0.0, 0.0, 0.0, true);
+    average  = input_image->ReturnAverageOfRealValues(input_image->physical_address_of_box_center_x - (mask_falloff / pixel_size), true);
+
+    if ( variance == 0.0f ) {
+        input_image->SetToConstant(0.0f);
+    }
+    else {
+        input_image->AddMultiplyConstant(-average, 1.0 / sqrtf(variance));
+    }
+}
+
+/*void histogram_equalization(Image& image_to_equalize) {
+    std::vector<float> histogram(image_to_equalize.logical_x_dimension, 0);
+
+    // Set up the histogram
+    for ( int pixel_counter = 0; pixel_counter < image_to_equalize.number_of_real_space_pixels; pixel_counter++ ) {
+        histogram[image_to_equalize.real_values[pixel_counter]]++;
+    }
+
+    // Normalize the histogram
+    for ( int bin_counter = 0; bin_counter < image_to_equalize.logical_x_dimension; bin_counter++ ) {
+        histogram[bin_counter] += histogram[bin_counter - 1];
+    }
+
+    // Equalize image
+    for ( int pixel_counter = 0; pixel_counter < image_to_equalize.number_of_real_space_pixels; pixel_counter++ ) {
+        image_to_equalize.real_values[pixel_counter] = ;
+    }
+}*/
