@@ -18,7 +18,7 @@ typedef struct ClassAveragesAndMembers {
     wxArrayLong class_members;
 } ClassAveragesAndMembers;
 
-void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Image* raw_sums, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int number_of_averages, long number_of_images, bool create_sums);
+void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Image* raw_sums, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int num_averages, long num_images, bool create_sums);
 void apply_ctf(Image& current_image, CTF& ctf_to_apply, float* ctf_sum_of_squares, bool absolute = false);
 void divide_by_ctf_sum_of_squares(Image& current_image, float* ctf_sum_of_squares);
 void normalize_image(Image* input_image, float pixel_size, float mask_falloff);
@@ -39,7 +39,7 @@ void MembraneSubtraction::DoInteractiveUserInput( ) {
     else
         classification_mrc_filename = "";
     /*int max_threads;
-    
+
 #ifdef _OPENMP
     max_threads = my_input->GetIntFromUser("Max number of threads", "The maximum number of threads to be used during calculations", "1");
 #else
@@ -68,14 +68,15 @@ bool MembraneSubtraction::DoCalculation( ) {
     std::string particle_stack_filename        = my_current_job.arguments[3].ReturnStringArgument( );
     std::string classifications_mrc_filename   = my_current_job.arguments[4].ReturnStringArgument( );
     bool        create_sums                    = my_current_job.arguments[5].ReturnBoolArgument( );
+    //const int   max_threads                    = my_current_job.arguments[6].ReturnIntegerArgument( );
 
     wxDateTime overall_start = wxDateTime::Now( );
     wxDateTime overall_finish;
 
     // Start with getting the txt file ready
     NumericTextFile*         class_average_indices_list   = new NumericTextFile(class_average_indices_filename, OPEN_TO_READ);
-    const int                number_of_averages           = class_average_indices_list->number_of_lines;
-    ClassAveragesAndMembers* list_of_averages_and_members = new ClassAveragesAndMembers[number_of_averages];
+    const int                num_averages                 = class_average_indices_list->number_of_lines;
+    ClassAveragesAndMembers* list_of_averages_and_members = new ClassAveragesAndMembers[num_averages];
 
     if ( class_average_indices_list->records_per_line != 1 ) {
         SendError("Error: Number of records per line in list of class averages should be 1!");
@@ -86,10 +87,10 @@ bool MembraneSubtraction::DoCalculation( ) {
     Database selected_db = Database( );
     selected_db.Open(database_filename);
 
-    float tmp_float[number_of_averages + 1]; // Stores the indices of the class averages
+    float tmp_float[num_averages + 1]; // Stores the indices of the class averages
     // Get the members of each average, keeping them properly grouped
 
-    for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
+    for ( int average_counter = 0; average_counter < num_averages; average_counter++ ) {
         class_average_indices_list->ReadLine(tmp_float);
         list_of_averages_and_members[average_counter].class_average_index = long(tmp_float[0]);
         list_of_averages_and_members[average_counter].class_members       = selected_db.Return2DClassMembers(classification_id, tmp_float[0]);
@@ -97,8 +98,8 @@ bool MembraneSubtraction::DoCalculation( ) {
     }
 
 #ifdef TMP_DEBUG
-    wxPrintf("\nNumber of averages = %i", number_of_averages);
-    for ( int i = 0; i < number_of_averages; i++ ) {
+    wxPrintf("\nNumber of averages = %i", num_averages);
+    for ( int i = 0; i < num_averages; i++ ) {
         wxPrintf("\nNumber of members in average %i: %li", list_of_averages_and_members[i].class_average_index, list_of_averages_and_members[i].class_members.GetCount( ));
     }
 #endif
@@ -130,13 +131,13 @@ bool MembraneSubtraction::DoCalculation( ) {
     MRCFile classification_mrc;
     if ( ! create_sums )
         classification_mrc = new MRCFile(classifications_mrc_filename);
-    const long number_of_images = particle_stack_mrc.ReturnNumberOfSlices( );
+    const long num_images = particle_stack_mrc.ReturnNumberOfSlices( );
 
 #ifdef TMP_DEBUG
     if ( ! create_sums )
-        wxPrintf("MRCs read in; number of images = %li; now read in .STAR params\n", number_of_images);
+        wxPrintf("MRCs read in; number of images = %li; now read in .STAR params\n", num_images);
     else
-        wxPrintf("MRCs read in; number of images = %li; now read in .STAR params and generate sums\n", number_of_images);
+        wxPrintf("MRCs read in; number of images = %li; now read in .STAR params and generate sums\n", num_images);
 #endif
 
     // Read in CTF params
@@ -144,7 +145,7 @@ bool MembraneSubtraction::DoCalculation( ) {
     input_star_parameters.ReadFromcisTEMStarFile(star_filename, true);
 
     // Make sure .star lines match up with number of particles in particle stack
-    if ( number_of_images != input_star_parameters.ReturnNumberofLines( ) ) {
+    if ( num_images != input_star_parameters.ReturnNumberofLines( ) ) {
         SendError("Error: number of images in stack does not match number of lines in .star file.");
         DEBUG_ABORT;
     }
@@ -172,10 +173,10 @@ bool MembraneSubtraction::DoCalculation( ) {
 
         float* ctf_sum_of_squares_array = new float[current_image.real_memory_allocated / 2];
 
-        aligned_sum_images = new Image[number_of_averages];
+        aligned_sum_images = new Image[num_averages];
 
         // Loop over the averages, reading in and summing only needed images
-        for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
+        for ( int average_counter = 0; average_counter < num_averages; average_counter++ ) {
             current_test_average.SetToConstant(0.0);
             ZeroFloatArray(ctf_sum_of_squares_array, current_image.real_memory_allocated / 2);
             while ( list_of_averages_and_members[average_counter].member_counter < list_of_averages_and_members[average_counter].number_of_members ) {
@@ -214,7 +215,7 @@ bool MembraneSubtraction::DoCalculation( ) {
         }
 
         // Reset counters to 0 for subtraction
-        for ( int average_counter = 0; average_counter < number_of_averages; average_counter++ ) {
+        for ( int average_counter = 0; average_counter < num_averages; average_counter++ ) {
             list_of_averages_and_members[average_counter].member_counter = 0;
             aligned_sum_images[average_counter].QuickAndDirtyWriteSlice("raw_averages.mrc", average_counter + 1);
         }
@@ -227,7 +228,7 @@ bool MembraneSubtraction::DoCalculation( ) {
     wxPrintf("STAR file read; now about to enter rotate_shift_scale_subtract.\n");
 #endif
 
-    align_scale_subtract(particle_stack_mrc, classification_mrc, aligned_sum_images, input_star_parameters, list_of_averages_and_members, number_of_averages, number_of_images, create_sums);
+    align_scale_subtract(particle_stack_mrc, classification_mrc, aligned_sum_images, input_star_parameters, list_of_averages_and_members, num_averages, num_images, create_sums);
 
     overall_finish            = wxDateTime::Now( );
     wxTimeSpan time_to_finish = overall_finish.Subtract(overall_start);
@@ -239,23 +240,23 @@ bool MembraneSubtraction::DoCalculation( ) {
 /**
  * @brief Aligns the class average, scales it, and then subtracts it from the full stack.
  * 
- * @param particle_mrc Particle stack associated with the refinement package that contains the needed classification
- * @param classification_mrc Contains class averages contained in the classification; used for subtraction
- * @param raw_sums Re-made averages that lack filtering applied by cisTEM 2D classification
- * @param ctf_params CTF parameters read in from .star file
- * @param class_members Array containing the list of all the members
- * @param list_of_averages_and_members Vector containing the grouped class averages and their included members
- * @param number_of_images Number of images in the full particle stack
- * @param create_sums Determines whether averages or sums generated from particle stack will be used for subtraction
+ * @param particle_mrc Particle stack associated with the refinement package that contains the needed classification.
+ * @param classification_mrc Contains class averages contained in the classification; used for subtraction.
+ * @param raw_sums Re-made averages that lack filtering applied by cisTEM 2D classification.
+ * @param ctf_params CTF parameters read in from .star file.
+ * @param class_members Array containing the list of all the members.
+ * @param list_of_averages_and_members Vector containing the grouped class averages and their included members.
+ * @param num_images Number of images in the full particle stack.
+ * @param create_sums Determines whether averages or sums generated from particle stack will be used for subtraction.
  */
-void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Image* raw_sums, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int number_of_averages, long number_of_images, bool create_sums) {
+void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Image* raw_sums, cisTEMParameters& ctf_params, ClassAveragesAndMembers* list_of_averages_and_members, const int num_averages, long num_images, bool create_sums) {
     Image current_image;
     Image class_average_image;
     CTF   current_ctf;
     long  image_counter;
     long  pixel_counter;
     long  current_member;
-    int   current_class_average_index;
+    int   average_counter;
     bool  image_is_already_written = false;
 
     // For CTF
@@ -276,22 +277,26 @@ void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Im
     double sum_of_squares;
     double scale_factor;
 
-    for ( image_counter = 0; image_counter < number_of_images; image_counter++ ) {
+    /*#pragma omp parallel num_threads(num_threads) default(none) shared(particle_mrc, classification_mrc, raw_sums, ctf_params, list_of_averages_and_members, num_averages, num_images, create_sums, microscope_voltage, spherical_abberation, pixel_size, additional_phase_shift) private(current_image, class_average_image, current_ctf, image_counter, pixel_counter, current_member, average_counter, psi, x_shift, y_shift, defocus_1, defocus_2, astigmatism_angle, amplitude_contrast, sum_of_pixelwise_product, sum_of_squares, scale_factor, image_is_already_written)
+    { // begin omp
+#pragma omp for ordered */
+    for ( image_counter = 0; image_counter < num_images; image_counter++ ) {
         current_image.ReadSlice(&particle_mrc, image_counter + 1);
         image_is_already_written = false;
 
         // Get the average and its member ready to subtract
-        for ( int class_average_counter = 0; class_average_counter < number_of_averages; class_average_counter++ ) {
-            if ( list_of_averages_and_members[class_average_counter].member_counter < list_of_averages_and_members[class_average_counter].number_of_members ) {
-                if ( list_of_averages_and_members[class_average_counter].class_members.Item(list_of_averages_and_members[class_average_counter].member_counter) - 1 == image_counter ) {
+        for ( average_counter = 0; average_counter < num_averages; average_counter++ ) {
+            if ( list_of_averages_and_members[average_counter].member_counter < list_of_averages_and_members[average_counter].number_of_members ) {
+                //#pragma omp ordered
+                if ( list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1 == image_counter ) {
                     if ( ! create_sums ) {
-                        class_average_image.ReadSlice(&classification_mrc, list_of_averages_and_members[class_average_counter].class_average_index);
+                        class_average_image.ReadSlice(&classification_mrc, list_of_averages_and_members[average_counter].class_average_index);
                     }
                     else
-                        class_average_image.CopyFrom(&raw_sums[class_average_counter]);
+                        class_average_image.CopyFrom(&raw_sums[average_counter]);
 
                     // -1 because the cisTEMParameters class contains an array of all params -- this means 0 indexing
-                    current_member = list_of_averages_and_members[class_average_counter].class_members.Item(list_of_averages_and_members[class_average_counter].member_counter) - 1;
+                    current_member = list_of_averages_and_members[average_counter].class_members.Item(list_of_averages_and_members[average_counter].member_counter) - 1;
 
                     // Read in CTF params
                     psi                = ctf_params.ReturnPsi(current_member);
@@ -331,17 +336,22 @@ void align_scale_subtract(MRCFile& particle_mrc, MRCFile& classification_mrc, Im
                     current_image.SubtractImage(&class_average_image);
                     current_image.QuickAndDirtyWriteSlice("subtracted_stack.mrc", image_counter + 1);
                     image_is_already_written = true;
-                    list_of_averages_and_members[class_average_counter].member_counter++;
-                    break; // Did what we needed; now done with class averages and should move to next image before looping them again.
+                    //#pragma omp critical
+                    list_of_averages_and_members[average_counter].member_counter++;
+                    break; // Got the member for current image; move to next instead of continuing in this loop.
                 }
             }
         }
         if ( ! image_is_already_written ) {
-            current_image.QuickAndDirtyWriteSlice("subtracted_stack.mrc", image_counter + 1);
-            current_image.SetToConstant(0.0);
-            current_image.QuickAndDirtyWriteSlice("aligned_ctf_average.mrc", image_counter + 1);
+            //#pragma omp critical
+            {
+                current_image.QuickAndDirtyWriteSlice("subtracted_stack.mrc", image_counter + 1);
+                current_image.SetToConstant(0.0);
+                current_image.QuickAndDirtyWriteSlice("aligned_ctf_average.mrc", image_counter + 1);
+            }
         }
     }
+    //} // end omp
 }
 
 /**
