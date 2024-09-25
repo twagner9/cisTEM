@@ -214,7 +214,7 @@ void ImportRefinementPackageWizard::OnFinished(wxWizardEvent& event) {
         //		temp_particle_info.microscope_voltage = MicroscopeVoltageTextCtrl->ReturnValue();
         temp_particle_info.parent_image_id    = -1;
         temp_particle_info.amplitude_contrast = input_star_file.ReturnAmplitudeContrast(0); // FIXME should be for all lines.
-        //		temp_particle_info.pixel_size = PixelSizeTextCtrl->ReturnValue();
+        temp_particle_info.pixel_size         = input_star_file.ReturnPixelSize(0);
         //		temp_particle_info.amplitude_contrast = AmplitudeContrastTextCtrl->ReturnValue();
         temp_particle_info.x_pos = 0;
         temp_particle_info.y_pos = 0;
@@ -233,14 +233,15 @@ void ImportRefinementPackageWizard::OnFinished(wxWizardEvent& event) {
             temp_particle_info.defocus_angle                       = input_star_file.ReturnDefocusAngle(particle_counter);
             temp_particle_info.phase_shift                         = input_star_file.ReturnPhaseShift(particle_counter);
             temp_particle_info.pixel_size                          = input_star_file.ReturnPixelSize(particle_counter);
-            temp_particle_info.amplitude_contrast                  = input_star_file.ReturnAmplitudeContrast(particle_counter);
-            temp_particle_info.assigned_subset                     = input_star_file.ReturnAssignedSubset(particle_counter);
+
+            temp_particle_info.amplitude_contrast = input_star_file.ReturnAmplitudeContrast(particle_counter);
+            temp_particle_info.assigned_subset    = input_star_file.ReturnAssignedSubset(particle_counter);
 
             temp_refinement_package->contained_particles.Add(temp_particle_info);
 
             temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].position_in_stack = (int)input_star_file.ReturnPositionInStack(particle_counter);
-            temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].defocus1          = input_star_file.ReturnDefocus1(particle_counter);
             temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].defocus2          = input_star_file.ReturnDefocus2(particle_counter);
+            temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].defocus1          = input_star_file.ReturnDefocus1(particle_counter);
             temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].defocus_angle     = input_star_file.ReturnDefocusAngle(particle_counter);
             temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].phase_shift       = input_star_file.ReturnPhaseShift(particle_counter);
             temp_refinement.class_refinement_results[0].particle_refinement_results[particle_counter].logp              = input_star_file.ReturnLogP(particle_counter);
@@ -277,7 +278,6 @@ void ImportRefinementPackageWizard::OnFinished(wxWizardEvent& event) {
         // add to the database and panel..
 
         main_frame->current_project.database.Begin( );
-        wxPrintf("\t\t\n\nAdding the temp refinement from the cisTEM import dialog\n\n");
         refinement_package_asset_panel->AddAsset(temp_refinement_package);
         main_frame->current_project.database.AddRefinement(&temp_refinement);
 
