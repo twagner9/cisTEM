@@ -107,5 +107,10 @@
     "editor.fontSize": 12,
     "remote.extensionKind": {
         "github.copilot-chat": "ui"
-    }
+    },
+    "C_Cpp.default.includePath": [
+        "/mnt/libtorch/include",
+        "/mnt/libtorch/torch/csrc/api/include",
+        "/mnt/libtorch/lib"
+    ]
 }
