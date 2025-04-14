@@ -2916,6 +2916,139 @@ void Image::AddByLinearInterpolationReal(float& wanted_physical_x_coordinate, fl
     }
 }
 
+float Image::TrilinearInterpolation(float interp_x, float interp_y, float interp_z) {
+    MyDebugAssertTrue(is_in_real_space, "Volume must be in real space.");
+
+    float important_cube[3][3][3] = {{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
+
+    long other_x = long(interp_x);
+    long other_y = long(interp_y);
+    long other_z = long(interp_z);
+
+    float t;
+    float u;
+    float v;
+
+    long  temp_x;
+    long  temp_y;
+    long  temp_z;
+    long  wanted_address;
+    float interpolated_value;
+
+    //long slice_bytes = logical_x_dimension * logical_y_dimension;
+    //long total_bytes = real_memory_allocated;
+
+    long negative_x_size = logical_x_dimension * -1;
+    long negative_y_size = logical_y_dimension * -1;
+    long negative_z_size = logical_z_dimension * -1;
+
+    float check_value;
+
+    //  NR uses a vector notation, in that y goes up..  so REVERSE THIS Y!! IN
+    //  FACT SOME KIND OF WEIRD Y THING IS HAPPENING!!!
+
+    for ( long z = 0; z < 2; z++ ) {
+        for ( long y = 0; y < 2; y++ ) {
+            for ( long x = 0; x < 2; x++ ) {
+                if ( other_x + x < 0 || other_x + x >= logical_x_dimension || other_y + y < 0 ||
+                     other_y + y >= logical_y_dimension || other_z + z < 0 || other_z + z >= logical_z_dimension ) {
+                    if ( other_x + x < 0 )
+                        temp_x = logical_x_dimension;
+                    else if ( other_x + x >= logical_x_dimension )
+                        temp_x = negative_x_size;
+                    else
+                        temp_x = 0;
+
+                    if ( other_y + y < 0 )
+                        temp_y = logical_y_dimension;
+                    else if ( other_y + y >= logical_y_dimension )
+                        temp_y = negative_y_size;
+                    else
+                        temp_y = 0;
+
+                    if ( other_z + z < 0 )
+                        temp_z = logical_z_dimension;
+                    else if ( other_z + z >= logical_z_dimension )
+                        temp_z = negative_z_size;
+                    else
+                        temp_z = 0;
+
+                    //  wanted_address = ((other_z + z + temp_z) * slice_bytes) +
+                    //                   ((other_y + y + temp_y) * logical_x_dimension) +
+                    //                   (other_x + x + temp_x);
+
+                    wanted_address = ReturnReal1DAddressFromPhysicalCoord(other_x + x + temp_x, other_y + y + temp_y, other_z + z + temp_z);
+                    if ( wanted_address >= 0 && wanted_address < real_memory_allocated )
+                        important_cube[x][y][z] = real_values[wanted_address];
+                    else
+                        important_cube[x][y][z] = 0.;
+                }
+                else {
+                    // wanted_address = ((other_z + z) * slice_bytes) +
+                    //                ((other_y + y) * logical_x_dimension) + (other_x + x);
+                    wanted_address = ReturnReal1DAddressFromPhysicalCoord(other_x + x, other_y + y, other_z + z);
+                    if ( wanted_address >= 0 && wanted_address < real_memory_allocated )
+                        important_cube[x][y][z] = real_values[wanted_address];
+                    else
+                        important_cube[x][y][z] = 0;
+                }
+            }
+        }
+    }
+
+    // should we interpolate
+
+    check_value           = important_cube[0][0][0];
+    bool do_interpolation = false;
+
+    // If any value that is less than the start of the important cube is not equal
+    // to the initial value ("check_value") then proceed with interpolation Else,
+    // interpolated value is the check value, and we do not interpolate
+    for ( long z = 0; z < 2; z++ ) {
+        for ( long y = 0; y < 2; y++ ) {
+            for ( long x = 0; x < 2; x++ ) {
+
+                if ( important_cube[x][y][z] != check_value ) {
+                    do_interpolation = true;
+                    x                = 2;
+                    y                = 2;
+                    z                = 2;
+                }
+            }
+        }
+    }
+
+    if ( do_interpolation ) {
+
+        // What remains here is the decimal portion of the interp_x, interp_y, interp_z
+        // (interps are primitive float, while other_x were the long (decimal chopped off) form of these values)
+        t = interp_x - float(other_x);
+        u = interp_y - float(other_y);
+        v = interp_z - float(other_z);
+
+        // Forumla for the interpolation:
+        // C00​=V000​(1−x1​−x0​x−x0​​)+V100​x1​−x0​x−x0​​
+        // Where C is the estimated value of the point, V is a vertex (there are 8 on a cube), and x are the coordinates
+
+        float i1 =
+                (important_cube[0][0][0] * (1 - v)) + (important_cube[0][0][1] * v);
+        float i2 =
+                (important_cube[0][1][0] * (1 - v)) + (important_cube[0][1][1] * v);
+        float j1 =
+                (important_cube[1][0][0] * (1 - v)) + (important_cube[1][0][1] * v);
+        float j2 =
+                (important_cube[1][1][0] * (1 - v)) + (important_cube[1][1][1] * v);
+        float w1 = (i1 * (1 - u)) + (i2 * u);
+        float w2 = (j1 * (1 - u)) + (j2 * u);
+
+        interpolated_value = (w1 * (1 - t)) + (w2 * t);
+    }
+    else
+        interpolated_value = check_value;
+
+    return interpolated_value;
+}
+
 void Image::AddByLinearInterpolationFourier2D(float& wanted_logical_x_coordinate, float& wanted_logical_y_coordinate, std::complex<float>& wanted_value) {
     int i;
     int j;
@@ -7014,7 +7147,7 @@ void Image::ComputeFilteredAmplitudeSpectrumFull2D(Image* average_spectrum_maske
     //			average_spectrum_masked->SetMaximumValue(average_spectrum_masked->ReturnMaximumValue(3,3));
 
     average_spectrum_masked->CopyFrom(this);
-    if (apply_cosine_mask) {
+    if ( apply_cosine_mask ) {
         average_spectrum_masked->CosineMask(float(average_spectrum_masked->logical_x_dimension) * pixel_size_for_fitting / std::max(maximum_resolution, 8.0f), float(average_spectrum_masked->logical_x_dimension) * pixel_size_for_fitting / std::max(maximum_resolution, 4.0f), true);
     }
     //			average_spectrum_masked->QuickAndDirtyWriteSlice("dbg_spec_before_thresh.mrc",1);
@@ -10285,6 +10418,157 @@ bool Image::ContainsBlankEdges(float mask_radius) {
 
 void Image::Rotate3DByRotationMatrixAndOrApplySymmetry(RotationMatrix& wanted_matrix, float wanted_max_radius_in_pixels, wxString wanted_symmetry) {
     Rotate3DByRotationMatrixAndOrApplySymmetryThenShift(wanted_matrix, 0.0f, 0.0f, 0.0f, wanted_max_radius_in_pixels, wanted_symmetry);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                                                                           //
+// Routines used for 3D helical reconstruction                               //
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////// Perform helical averaging on a 3D volume where the helix is assumed to lie
+// along the z axis. Only z coordinates between start_z and end_z (inclusive)
+// are considered in order to minimize end-filament artifacts. The routine
+// considers the helix to be made up of monomers where the dispacement along
+// the z axis between consecutive monomers is given by axial_translation and
+// the angular rotation between monomers is given by azimuthal_rotation.
+// This is a pretty dumb subroutine in the sense that it performs averaging
+// for every point in the full 3D volume rather than calculating the averaged
+// monomer once and then copying this to all the symmetry related points.
+// The reason for this, apart from pure idleness, is that it avoids problems
+// with edge artifacts between monomers, and some interpolation problems.
+// One figures of merit are returned - the cross correlation between maps
+// within the masked region
+void Image::HelicalAverage(bool reverse_hand, int start_z, int end_z, float min_radius, float max_radius, float axial_translation, float azimuthal_rotation, float& cross_corr) {
+    MyDebugAssertTrue(is_in_memory, "Memory not allocated");
+    MyDebugAssertTrue(is_in_real_space, "Not in real space");
+    MyDebugAssertFalse(logical_z_dimension == 1, "Must pass 3D volume");
+    long  x0;
+    long  y0;
+    long  z0;
+    float x0r;
+    float y0r;
+    float xmid;
+    float ymid;
+    long  index0;
+    float x1;
+    float y1;
+    float z1;
+    float theta1;
+    float radius;
+    float sum_dens;
+    long  num_points;
+    float average;
+    //double sum_squares;
+    float cross_sum;
+    //double min_dens;      // minimum density in helically averaged map
+    //double min_dens_orig; // minimum density in original map
+    //double object_size;
+    //double low_cutoff;    // Sanity check
+
+    Image* avg_vol = new Image( );
+    avg_vol->CopyFrom(this);
+    this->SetToConstant(0.0);
+    if ( reverse_hand )
+        azimuthal_rotation *= -1.0; // Normalize voxels within mask
+
+    // DEBUG:
+    // wxTextFile log_file("log_file.txt");
+    // log_file.Open( );
+    // if ( ! log_file.IsOpened( ) ) {
+    //     wxPrintf("Error opening this_real_values.txt. Logging will not work.\n");
+    // }
+    // else {
+    //     log_file.Clear( );
+    // } // END DEBUG
+
+    avg_vol->Normalize(1.0f, max_radius);
+    xmid = (float)(this->logical_x_dimension / 2);
+    ymid = (float)(this->logical_y_dimension / 2);
+
+    // #pragma omp parallel for ordered num_threads(12) shared(start_z, end_z, avg_vol) private(x0, y0, z0, index0, x0r, y0r, radius, theta1, num_points, sum_dens, axial_translation, azimuthal_rotation, x1, y1, z1, average)
+    for ( z0 = start_z; z0 <= end_z; z0++ ) {
+        for ( y0 = 0; y0 < logical_y_dimension; y0++ ) {
+            for ( x0 = 0; x0 < logical_x_dimension; x0++ ) { // Get index of coordinate
+                index0 = this->ReturnReal1DAddressFromPhysicalCoord(x0, y0, z0);
+                // Coords2Index(index0, x0, y0, z0); // Go through copy volume and find the average of all symmetry related points
+                x0r = (float)x0 - xmid;
+                y0r = (float)y0 - ymid;
+
+                radius = sqrt(x0r * x0r + y0r * y0r);
+                if ( radius > max_radius || radius < min_radius )
+                    continue;
+
+                z1         = (float)z0;
+                theta1     = 0;
+                num_points = 1;
+                sum_dens   = avg_vol->ReturnRealPixelFromPhysicalCoord(x0, y0, z0);
+                // sum_dens   = im3D1->GetPixelValue(x0, y0, z0);
+
+                // First move forward in z
+                z1 += axial_translation;
+                theta1 += azimuthal_rotation;
+                while ( z1 <= (float)end_z ) {
+                    x1 = xmid + (cos(theta1) * x0r) - (sin(theta1) * y0r);
+                    y1 = ymid + (sin(theta1) * x0r) + (cos(theta1) * y0r);
+                    sum_dens += avg_vol->TrilinearInterpolation(x1, y1, z1);
+                    num_points++;
+                    z1 += axial_translation;
+                    theta1 += azimuthal_rotation;
+                }
+
+                // Now move backward in z
+                z1     = (float)z0 - axial_translation;
+                theta1 = -1 * azimuthal_rotation;
+                while ( z1 >= (float)start_z ) {
+                    x1 = xmid + cos(theta1) * x0r - sin(theta1) * y0r;
+                    y1 = ymid + sin(theta1) * x0r + cos(theta1) * y0r;
+                    sum_dens += avg_vol->TrilinearInterpolation(x1, y1, z1);
+                    num_points++;
+                    z1 -= axial_translation;
+                    theta1 -= azimuthal_rotation;
+                }
+
+                // The average
+                average = sum_dens / (float)num_points; // Set value
+
+                // DEBUG: am I writing the same value?
+                // wxString truth_value = (average - ReturnRealPixelFromPhysicalCoord(x0, y0, z0) < 1e-4) ? "SAME" : "DIFFERENT";
+                // log_file.AddLine(truth_value);
+
+                this->real_values[index0] = average;
+            }
+        }
+    } // Normalize voxels within mask
+    // if ( log_file.IsOpened( ) ) {
+    //     log_file.Write( );
+    //     log_file.Close( );
+    // }
+    Normalize(1.0f, max_radius);
+    // this->Normalise(0.0, 1.0, true, true, start_z, end_z, max_radius);
+
+    // FIXME: maybe this should be done where the function is called...?
+    // Peak cross_corr_peak = this->FindPeakWithParabolaFit( );
+
+    // Calculate cross correlation coefficient within masked region (this is a 3D cross correlation)
+    num_points = 0;
+    cross_sum  = 0.0;
+    for ( index0 = 0; index0 < number_of_real_space_pixels; index0++ ) {
+        x0 = index0 % logical_x_dimension;
+        y0 = (index0 / logical_x_dimension) % logical_y_dimension;
+        z0 = index0 / (logical_x_dimension * logical_y_dimension);
+
+        // Only include if within the mask radius
+        if ( z0 < start_z || z0 > end_z )
+            continue;
+        x0r    = (double)x0 - xmid;
+        y0r    = (double)y0 - ymid;
+        radius = sqrt(x0r * x0r + y0r * y0r);
+        if ( radius > max_radius )
+            continue;
+        cross_sum += avg_vol->real_values[index0] * this->real_values[index0];
+        num_points++;
+    }
+    cross_corr = cross_sum / (double)num_points; // Calculate mean squared deviation and minimum density within masked region
+    delete avg_vol;
 }
 
 void Image::Rotate3DByRotationMatrixAndOrApplySymmetryThenShift(RotationMatrix& wanted_matrix, float wanted_x_shift, float wanted_y_shift, float wanted_z_shift, float wanted_max_radius_in_pixels, wxString wanted_symmetry) // like above but with shift

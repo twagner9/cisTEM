@@ -476,6 +476,10 @@ if ENABLE_MEASURETEMPLATEBIAS_AM
 bin_PROGRAMS += measure_template_bias
 endif
 
+if ENABLE_HELICALAVERAGE_AM
+bin_PROGRAMS += helical_average
+endif
+
 ########################################################
 # End optional programs
 ########################################################
@@ -738,6 +742,13 @@ cisTEM_job_control_CXXFLAGS = $(WX_CPPFLAGS_BASE)
 cisTEM_job_control_CPPFLAGS = $(WX_CPPFLAGS_BASE)
 cisTEM_job_control_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 cisTEM_job_control_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
+
+helical_average_SOURCES = programs/helical_average/helical_average3D.cpp
+helical_average_CXXFLAGS = $(WX_CPPFLAGS_BASE)
+helical_average_CPPFLAGS = $(WX_CPPFLAGS_BASE)
+helical_average_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
+helical_average_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
+
 
 # unlike other programs where we build program/ program_gpu to maintain
 # both codepaths with the most src code overlap as possible, for console tests

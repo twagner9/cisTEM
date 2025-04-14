@@ -239,6 +239,7 @@ class Image {
     void                RotateQuadrants(Image& rotated_image, int quad_i);
     void                Rotate3DByRotationMatrixAndOrApplySymmetry(RotationMatrix& wanted_matrix, float wanted_max_radius_in_pixels = 0.0, wxString wanted_symmetry = "C1"); // use identiy matrix to just impose sym
     void                Rotate3DByRotationMatrixAndOrApplySymmetryThenShift(RotationMatrix& wanted_matrix, float wanted_x_shift, float wanted_y_shift, float wanted_z_shift, float wanted_max_radius_in_pixels = 0.0, wxString wanted_symmetry = "C1"); // like above but with shift
+    void                HelicalAverage(bool reverse_hand, int start_z, int end_z, float min_radius, float max_radius, float axial_translation, float azimuthal_rotation, float& cross_corr);
     void                Rotate3DThenShiftThenApplySymmetry(RotationMatrix& wanted_matrix, float wanted_x_shift, float wanted_y_shift, float wanted_z_shift, float wanted_max_radius_in_pixels = 0.0, wxString wanted_symmetry = "C1");
     void                GenerateReferenceProjections(Image* projections, EulerSearch& parameters, float resolution);
     void                RotateFourier2DGenerateIndex(Kernel2D**& kernel_index, float psi_max, float psi_step, float psi_start, bool invert_angle = false);
@@ -560,7 +561,8 @@ class Image {
     float ReturnIcinessOfSpectrum(float pixel_size_in_Angstroms);
 
     // Interpolation
-    void GetRealValueByLinearInterpolationNoBoundsCheckImage(float& x, float& y, float& interpolated_value);
+    void  GetRealValueByLinearInterpolationNoBoundsCheckImage(float& x, float& y, float& interpolated_value);
+    float TrilinearInterpolation(float interp_x, float interp_y, float interp_z);
 
     void FindPeakAtOriginFast2DMask(int max_pix_x, int max_pix_y);
     Peak FindPeakAtOriginFast2D(int max_pix_x, int max_pix_y);

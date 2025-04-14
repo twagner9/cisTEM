@@ -445,4 +445,14 @@ AC_ARG_ENABLE(build-measure-template-bias, AS_HELP_STRING([--enable-build-measur
   ])
 AM_CONDITIONAL([ENABLE_MEASURETEMPLATEBIAS_AM], [test "x$build_measure_template_bias" = "xyes"])
 
+AS_IF([test "x$build_all" = "xyes"], [build_helical_average="yes"])
+AC_ARG_ENABLE(build-helical-average, AS_HELP_STRING([--enable-build-helical-average],[build helical_average  [default="no"]]),[
+  if test "$enableval" = yes; then
+    build_helical_average=yes
+  	AC_MSG_NOTICE([Building helical_average])	
+  fi
+  ])
+AM_CONDITIONAL([ENABLE_HELICALAVERAGE_AM], [test "x$build_helical_average" = "xyes"])
+
 ])
+
