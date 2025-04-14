@@ -1,4 +1,5 @@
 #include "../../core/core_headers.h"
+#include <memory>
 
 class HelicalAverage3D : public MyApp {
   public:
@@ -154,6 +155,7 @@ bool HelicalAverage3D::DoCalculation( ) {
         float best_axial_translation;
         float best_azimuth_rotation;
 
+        // Log file checking/setup
         wxTextFile log_file(log_fname);
         log_file.Create( );
         log_file.Open( );
@@ -180,7 +182,12 @@ bool HelicalAverage3D::DoCalculation( ) {
         log_file.AddLine(wxString::Format("Azimuth rotation max:   %f\n", azimuth_rotation_max));
         log_file.AddLine(wxString::Format("Azimuth rotation step:  %f\n", azimuth_rotation_step));
         log_file.AddLine(wxString::Format("\nSearch for best fit parameters:\n"));
-        log_file.AddLine(wxString::Format("Axial Translation \tAzimuth Rotation \tcross_corr\n"));
+        log_file.AddLine(wxString::Format("Axial Translation \tAzimuth Rotation \tcross_corr\tOutput filename\n"));
+
+        // Set up progress bar increments before converting...I wonder if these will even still come out the same?
+        int num_translation_steps   = (axial_translation_max - axial_translation_min) / axial_translation_step;
+        int num_rotation_steps      = (azimuth_rotation_max - azimuth_rotation_min) / azimuth_rotation_step;
+        int num_progress_increments = std::ceil(num_translation_steps * num_rotation_steps); // round up in case decimal outcome
 
         azimuth_rotation_min *= d2r;
         azimuth_rotation_max *= d2r;
@@ -188,20 +195,28 @@ bool HelicalAverage3D::DoCalculation( ) {
 
         long allocation_size = (ceill((axial_translation_max - axial_translation_min) / axial_translation_step) + 1) * (ceill((azimuth_rotation_max - azimuth_rotation_min) / azimuth_rotation_step) + 1);
 
-        std::vector<float> cross_corr_vec(allocation_size);
-        std::vector<float> axial_translation_vec(allocation_size);
-        std::vector<float> azimuth_rotation_vec(allocation_size);
+        // std::vector<float> cross_corr_vec(allocation_size);
+        // std::vector<float> axial_translation_vec(allocation_size);
+        // std::vector<float> azimuth_rotation_vec(allocation_size);
 
         best_axial_translation = axial_translation_min;
         best_azimuth_rotation  = azimuth_rotation_min;
         best_cross_corr        = -2.0;
         long index             = 0;
-        int write_counter = 0;
+        int  write_counter     = 0;
 
+        // DEBUG:
+        wxPrintf("\nnum_translation_steps == %i; num_rotation_steps == %i; product == %i\n\n", num_translation_steps, num_rotation_steps, num_translation_steps * num_rotation_steps);
+        // END DEBUG
+
+        std::unique_ptr<ProgressBar> progress_bar      = std::make_unique<ProgressBar>(num_progress_increments);
+        int                          current_num_steps = 0;
         for ( axial_translation = axial_translation_min; axial_translation <= axial_translation_max; axial_translation += axial_translation_step ) {
             for ( azimuth_rotation = azimuth_rotation_min; azimuth_rotation <= azimuth_rotation_max; azimuth_rotation += azimuth_rotation_step ) {
                 helical_average.CopyFrom(&helix_volume);
                 helical_average.HelicalAverage(reverse_handedness, start_z, end_z, inner_radius, outer_radius, axial_translation, azimuth_rotation, cross_corr);
+
+                progress_bar->Update(++current_num_steps);
 
                 if ( cross_corr > best_cross_corr ) {
                     best_cross_corr        = cross_corr;
@@ -210,14 +225,16 @@ bool HelicalAverage3D::DoCalculation( ) {
                 }
 
                 // Add measurements to vectors
-                cross_corr_vec[index]        = cross_corr;
-                axial_translation_vec[index] = axial_translation;
-                azimuth_rotation_vec[index]  = azimuth_rotation;
+                // cross_corr_vec[index]        = cross_corr;
+                // axial_translation_vec[index] = axial_translation;
+                // azimuth_rotation_vec[index]  = azimuth_rotation;
                 index++;
 
-                wxPrintf("Axial translation=%f, Azimuth rotation=%f, cross_corr=%f\n", axial_translation, r2d * azimuth_rotation, cross_corr);
-                log_file.AddLine(wxString::Format("%f\t%f\t%f\n", axial_translation, r2d * azimuth_rotation, cross_corr));
-                helical_average.QuickAndDirtyWriteSlices(wxString::Format("%s_%i.mrc",out_fname.substr(0, out_fname.size() - 4), write_counter).ToStdString(), 1, helical_average.logical_z_dimension, true);
+                // wxPrintf("Axial translation=%f, Azimuth rotation=%f, cross_corr=%f\n", axial_translation, r2d * azimuth_rotation, cross_corr);
+                return false;
+                std::string cur_filename = wxString::Format("%s_%i.mrc", out_fname.substr(0, out_fname.size( ) - 4), write_counter).ToStdString( );
+                log_file.AddLine(wxString::Format("%f\t\t\t%f\t\t\t%f\t%s", axial_translation, r2d * azimuth_rotation, cross_corr, cur_filename));
+                helical_average.QuickAndDirtyWriteSlices(cur_filename, 1, helical_average.logical_z_dimension, true);
                 write_counter++;
             }
             log_file.Write( );
