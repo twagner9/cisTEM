@@ -1,5 +1,7 @@
 #include "../../core/core_headers.h"
 #include <memory>
+#include <atomic>
+#include <omp.h>
 
 class HelicalAverage3D : public MyApp {
   public:
@@ -15,10 +17,10 @@ void HelicalAverage3D::DoInteractiveUserInput( ) {
     std::string in_fname                  = my_input->GetFilenameFromUser("Input MRC file", "The volume to which helical averaging should be applied", "input.mrc", true);
     std::string out_fname                 = my_input->GetFilenameFromUser("Output MRC filename", "The volume to which helical averaging should be applied", "output.mrc", false);
     bool        reverse_handedness        = my_input->GetYesNoFromUser("Reverse handedness", "Determine whether averaging should reverse helix handedness", "NO");
-    float       pixel_size                = my_input->GetFloatFromUser("Pixel size (A)", "", "1.00", 0.1);
+    float       pixel_size                = my_input->GetFloatFromUser("Pixel size (A)", "", "1.00");
     float       inner_radius              = my_input->GetFloatFromUser("Inner mask radius (in pixels)", "", "25.0", 0.0);
     float       outer_radius              = my_input->GetFloatFromUser("Outer mask radius (in pixels)", "", wxString::Format("%.1f", inner_radius + 1).c_str( ), inner_radius + 1);
-    int         start_z                   = my_input->GetIntFromUser("Starting coordinate of z range helical averaging is to be performed", "", "0");
+    int         start_z                   = my_input->GetIntFromUser("Starting coordinate of z range helical averaging is to be performed", "", "1", 1);
     int         end_z                     = my_input->GetIntFromUser("End coordinate of z range helical averaging is to be performed", "", "200", start_z + 1);
     bool        refine_helical_parameters = my_input->GetYesNoFromUser("Try a range of helical parameters?", "", "NO"); // Always index 7
 
@@ -32,7 +34,7 @@ void HelicalAverage3D::DoInteractiveUserInput( ) {
     float       azimuth_rotation_max;
     float       azimuth_rotation_step;
     bool        use_multiple_threads;
-    int         num_threads;
+    int         max_threads;
 
     if ( ! refine_helical_parameters ) {
         // Turn size? Ask in angstroms, ask for pixel size, convert for user?
@@ -41,18 +43,18 @@ void HelicalAverage3D::DoInteractiveUserInput( ) {
     }
     else {
         log_fname              = my_input->GetFilenameFromUser("log filename for storing parameters", "", "log.txt", false);
-        axial_translation_min  = my_input->GetFloatFromUser("Min value in search of distance between consecutive monomers in z direction (in A)", "Specified in pixels", "0");
-        axial_translation_max  = my_input->GetFloatFromUser("Max value in search of distance between consecutive monomers in z direction (in A)", "Specified in pixels", "0", axial_translation_min);
+        axial_translation_min  = my_input->GetFloatFromUser("Min value in search of distance between consecutive monomers in z direction (in A)", "Specified in pixels", "1");
+        axial_translation_max  = my_input->GetFloatFromUser("Max value in search of distance between consecutive monomers in z direction (in A)", "Specified in pixels", "1", axial_translation_min);
         axial_translation_step = my_input->GetFloatFromUser("Increment in search of distance between consecutive monomers in z direction (in A)", "Specified in pixels", "2");
         azimuth_rotation_min   = my_input->GetFloatFromUser("Min value in search of rotation between consecutive monomers in degrees", "Specified in degrees", "0", 0.0);
         azimuth_rotation_max   = my_input->GetFloatFromUser("Max value in search of rotation between consecutive monomers in degrees", "Specified in degrees", "360", azimuth_rotation_min, 360.0);
         azimuth_rotation_step  = my_input->GetFloatFromUser("Step size of search of rotation between consecutive monomers in degrees", "Specified in degrees", "5", 0.01, 360);
         use_multiple_threads   = my_input->GetYesNoFromUser("Use multiple threads?", "Use multiple threads to speed up the calculation", "NO");
         if ( use_multiple_threads ) {
-            num_threads = my_input->GetIntFromUser("Number of threads to use", "Number of threads to use", "1", 1);
+            max_threads = my_input->GetIntFromUser("Number of threads to use", "Number of threads to use", "1", 1);
         }
         else {
-            num_threads = 1;
+            max_threads = 1;
         }
     }
 
@@ -60,37 +62,17 @@ void HelicalAverage3D::DoInteractiveUserInput( ) {
 
     if ( ! refine_helical_parameters ) {
         my_current_job.Reset(11);
-        my_current_job.ManualSetArguments("ttbfffiibff", in_fname.c_str( ),
-                                          out_fname.c_str( ),
-                                          reverse_handedness,
-                                          pixel_size,
-                                          inner_radius,
-                                          outer_radius,
-                                          start_z,
-                                          end_z,
-                                          refine_helical_parameters,
-                                          axial_translation,
-                                          azimuth_rotation);
+        my_current_job.ManualSetArguments("ttbfffiibff", in_fname.c_str( ), out_fname.c_str( ),
+                                          reverse_handedness, pixel_size, inner_radius, outer_radius, start_z, end_z,
+                                          refine_helical_parameters, axial_translation, azimuth_rotation);
     }
     else {
         my_current_job.Reset(17);
-        my_current_job.ManualSetArguments("ttbfffiibtffffffi", in_fname.c_str( ),
-                                          out_fname.c_str( ),
-                                          reverse_handedness,
-                                          pixel_size,
-                                          inner_radius,
-                                          outer_radius,
-                                          start_z,
-                                          end_z,
-                                          refine_helical_parameters,
-                                          log_fname.c_str( ),
-                                          axial_translation_min,
-                                          axial_translation_max,
-                                          axial_translation_step,
-                                          azimuth_rotation_min,
-                                          azimuth_rotation_max,
-                                          azimuth_rotation_step,
-                                          num_threads);
+        my_current_job.ManualSetArguments("ttbfffiibtffffffi", in_fname.c_str( ), out_fname.c_str( ),
+                                          reverse_handedness, pixel_size, inner_radius, outer_radius, start_z, end_z,
+                                          refine_helical_parameters, log_fname.c_str( ), axial_translation_min,
+                                          axial_translation_max, axial_translation_step, azimuth_rotation_min,
+                                          azimuth_rotation_max, azimuth_rotation_step, max_threads);
     }
 }
 
@@ -105,6 +87,12 @@ bool HelicalAverage3D::DoCalculation( ) {
     int         start_z                   = my_current_job.arguments[6].ReturnIntegerArgument( );
     int         end_z                     = my_current_job.arguments[7].ReturnIntegerArgument( );
     bool        refine_helical_parameters = my_current_job.arguments[8].ReturnBoolArgument( );
+
+    MyAssertTrue(pixel_size > 0.0, "Pixel size must be greater than 0.0 A");
+
+    // Adjust received start and end slices down by 1:
+    start_z--;
+    end_z--;
 
     float cross_corr = 0.0;
     float d2r        = acos(-1.0) / 180.0;
@@ -122,7 +110,7 @@ bool HelicalAverage3D::DoCalculation( ) {
     float    azimuth_rotation_min;
     float    azimuth_rotation_max;
     float    azimuth_rotation_step;
-    int      num_threads;
+    int      max_threads;
 
     if ( ! refine_helical_parameters ) {
         axial_translation = my_current_job.arguments[9].ReturnFloatArgument( );
@@ -137,6 +125,8 @@ bool HelicalAverage3D::DoCalculation( ) {
         axial_translation_max  = my_current_job.arguments[11].ReturnFloatArgument( );
         axial_translation_step = my_current_job.arguments[12].ReturnFloatArgument( );
 
+        MyAssertTrue(axial_translation_min > 0.0, "Minimum axial translation must be greater than 0.0 A");
+
         // Convert translation stuff to pixels
         axial_translation_min /= pixel_size;
         axial_translation_max /= pixel_size;
@@ -145,13 +135,17 @@ bool HelicalAverage3D::DoCalculation( ) {
         azimuth_rotation_min  = my_current_job.arguments[13].ReturnFloatArgument( );
         azimuth_rotation_max  = my_current_job.arguments[14].ReturnFloatArgument( );
         azimuth_rotation_step = my_current_job.arguments[15].ReturnFloatArgument( );
-        num_threads           = my_current_job.arguments[16].ReturnIntegerArgument( );
+        max_threads           = my_current_job.arguments[16].ReturnIntegerArgument( );
+
+        if ( max_threads > omp_get_max_threads( ) ) {
+            max_threads = omp_get_max_threads( );
+            wxPrintf("More threads specified than are available. Reduced to %i\n", max_threads);
+        }
     }
 
     // Now begin implementation of the program
     MRCFile                input_volume_mrc(in_fname);
     std::unique_ptr<Image> helix_volume = std::make_unique<Image>( );
-    Image                  helical_average;
     helix_volume->ReadSlices(&input_volume_mrc, 1, input_volume_mrc.ReturnZSize( ));
     wxDateTime averaging_start = wxDateTime::Now( );
     wxDateTime averaging_end;
@@ -161,9 +155,13 @@ bool HelicalAverage3D::DoCalculation( ) {
         wxPrintf("\nPerforming helical averaging...\n");
 
         azimuth_rotation *= d2r;
-        wxPrintf("Check parameters: inner_radius = %f; outer_radius = %f; start_z = %i; end_z = %i; axial_translation = %f; azimuth_rotation = %f\n", inner_radius, outer_radius, start_z, end_z, axial_translation, azimuth_rotation);
-        helix_volume->HelicalAverage(reverse_handedness, start_z, end_z, inner_radius, outer_radius, axial_translation, azimuth_rotation, cross_corr);
-        helix_volume->QuickAndDirtyWriteSlices(out_fname, 1, helix_volume->logical_z_dimension, true, pixel_size);
+        wxPrintf("Check parameters: inner_radius = %f; outer_radius = %f; start_z = %i; end_z = "
+                 "%i; axial_translation = %f; azimuth_rotation = %f\n",
+                 inner_radius, outer_radius, start_z, end_z, axial_translation, azimuth_rotation);
+        helix_volume->HelicalAverage(reverse_handedness, start_z, end_z, inner_radius, outer_radius,
+                                     axial_translation, azimuth_rotation, cross_corr);
+        helix_volume->QuickAndDirtyWriteSlices(
+                out_fname, 1, helix_volume->logical_z_dimension, true, pixel_size);
 
         wxPrintf("Cross correlation score: %f\n", cross_corr);
         averaging_end = wxDateTime::Now( );
@@ -198,11 +196,11 @@ bool HelicalAverage3D::DoCalculation( ) {
         log_file << wxString::Format("Azimuth rotation max:   %f\n", azimuth_rotation_max);
         log_file << wxString::Format("Azimuth rotation step:  %f\n", azimuth_rotation_step);
         log_file << wxString::Format("\nSearch for best fit parameters:\n");
-        log_file << wxString::Format("Axial Translation \tAzimuth Rotation \tcross_corr\n");
+        log_file << wxString::Format("Correlation Score \tAxial Translation \tAzimuth Rotation\n");
 
         // Set up progress bar increments before converting
-        const int num_translation_steps = std::floor(1 + (axial_translation_max - axial_translation_min) / axial_translation_step);
-        const int num_rotation_steps    = std::floor(1 + (azimuth_rotation_max - azimuth_rotation_min) / azimuth_rotation_step);
+        const int num_translation_steps = static_cast<int>(std::round((axial_translation_max - axial_translation_min) / axial_translation_step)) + 1;
+        const int num_rotation_steps    = static_cast<int>(std::round((azimuth_rotation_max - azimuth_rotation_min) / azimuth_rotation_step)) + 1;
         const int num_iterations        = num_translation_steps * num_rotation_steps;
 
         azimuth_rotation_min *= d2r;
@@ -224,42 +222,95 @@ bool HelicalAverage3D::DoCalculation( ) {
         std::unique_ptr<ProgressBar> progress_bar      = std::make_unique<ProgressBar>(num_iterations);
         int                          current_num_steps = 0;
 
-        // Loop over all translations and rotations; must use this format to parallelize, as OMP does not accept
-        // floating point values for iteration.
-#pragma omp parallel for ordered num_threads(num_threads) private(azimuth_rotation, axial_translation, helical_average, cross_corr, index) shared(helix_volume, best_cross_corr, best_axial_translation, best_azimuth_rotation, log_file)
-        for ( int translation_counter = 0; translation_counter < num_translation_steps; translation_counter++ ) {
-            axial_translation = axial_translation_min + translation_counter * axial_translation_step;
-            for ( int rotation_counter = 0; rotation_counter < num_rotation_steps; rotation_counter++ ) {
-                azimuth_rotation = azimuth_rotation_min + rotation_counter * azimuth_rotation_step;
+        // pre-allocate the vector to make insertion thread safe
+        std::vector<std::tuple<float, float, float>> results_vec(num_translation_steps * num_rotation_steps);
+        // wxPrintf("number of iterations: %i\n", num_iterations);
+        std::atomic<int> current_step_counter(0);
 
-                helical_average.CopyFrom(helix_volume.get( ));
-                helical_average.HelicalAverage(reverse_handedness, start_z, end_z, inner_radius, outer_radius, axial_translation, -1 * azimuth_rotation, cross_corr);
+        // Loop over all translations and rotations; must use this format to parallelize, as OMP
+        // does not accept floating point values for iteration.
+        max_threads = std::min(max_threads, num_iterations);
+        Image helical_average;
+        // helical_average.CopyFrom(helix_volume.get( ));
 
-                if ( cross_corr > best_cross_corr ) {
-                    best_cross_corr        = cross_corr;
-                    best_axial_translation = axial_translation;
-                    best_azimuth_rotation  = azimuth_rotation;
-                }
+#pragma omp parallel for schedule(dynamic) num_threads(max_threads) private(azimuth_rotation, axial_translation, helical_average, cross_corr) shared(helix_volume, results_vec)
+        for ( int position_counter = 0; position_counter < num_iterations; position_counter++ ) {
+            int translation_counter = position_counter / num_rotation_steps;
+            int rotation_counter    = position_counter % num_rotation_steps;
 
-                // Add measurements to vectors
-                // cross_corr_vec[index]        = cross_corr;
-                // axial_translation_vec[index] = axial_translation;
-                // azimuth_rotation_vec[index]  = azimuth_rotation;
-                index++;
+            axial_translation = axial_translation_min + (position_counter / num_rotation_steps) * axial_translation_step;
+            azimuth_rotation  = azimuth_rotation_min + (position_counter % num_rotation_steps) * azimuth_rotation_step;
 
-// wxPrintf("Axial translation=%f, Azimuth rotation=%f, cross_corr=%f\n", axial_translation, r2d * azimuth_rotation, cross_corr);
-#pragma omp critical
-                log_file << wxString::Format("%f\t\t\t%f\t\t\t%f", axial_translation * pixel_size, r2d * azimuth_rotation, cross_corr).ToStdString( ) << std::endl;
-                // helical_average.QuickAndDirtyWriteSlices(cur_filename, 1, helical_average.logical_z_dimension, true);
-                write_counter++;
-                progress_bar->Update(++current_num_steps);
+            helical_average.CopyFrom(helix_volume.get( ));
+            helical_average.HelicalAverage(reverse_handedness, start_z, end_z, inner_radius, outer_radius, axial_translation, -1 * azimuth_rotation, cross_corr);
+
+            int index          = translation_counter * num_rotation_steps + rotation_counter;
+            results_vec[index] = std::make_tuple(cross_corr, axial_translation * pixel_size, azimuth_rotation * r2d);
+
+            int progress = current_step_counter.fetch_add(1) + 1;
+            if ( is_running_locally && ReturnThreadNumberOfCurrentThread( ) == 0 ) {
+                progress_bar->Update(progress);
             }
+            //     wxPrintf("End of loop\n");
         }
-        wxPrintf("\nBest fit from brute force search:\n");
-        wxPrintf("Axial translation=%f, Azimuth rotation=%f, cross corr=%f\n", best_axial_translation * pixel_size, r2d * best_azimuth_rotation, best_cross_corr);
-        log_file << "\nBest fit from brute force search:" << std::endl;
-        log_file << wxString::Format("Axial translation=%f, Azimuth rotation=%f, cross corr=%f", best_axial_translation * pixel_size, r2d * best_azimuth_rotation, best_cross_corr).ToStdString( ) << std::endl;
+        // #pragma omp parallel for collapse(2) num_threads(max_threads) private(azimuth_rotation, axial_translation, helical_average, cross_corr) shared(helix_volume, results_vec)
+        //         for ( int translation_counter = 0; translation_counter < num_translation_steps; translation_counter++ ) {
+        //             for ( int rotation_counter = 0; rotation_counter < num_rotation_steps; rotation_counter++ ) {
+        //                 axial_translation = axial_translation_min + translation_counter * axial_translation_step;
+        //                 azimuth_rotation  = azimuth_rotation_min + rotation_counter * azimuth_rotation_step;
+
+        //                 helical_average.CopyFrom(helix_volume.get( ));
+        //                 helical_average.HelicalAverage(reverse_handedness, start_z, end_z, inner_radius, outer_radius, axial_translation, -1 * azimuth_rotation, cross_corr);
+
+        //                 int index = translation_counter * num_rotation_steps + rotation_counter;
+        //                 wxPrintf("DEBUG: translation counter=%i, rotation counter=%i, index=%i\n", translation_counter, rotation_counter, index);
+        //                 results_vec[index] = std::make_tuple(cross_corr, axial_translation * pixel_size, azimuth_rotation * r2d);
+
+        //                 wxPrintf("current progress == %i/%i\n", translation_counter * num_rotation_steps + rotation_counter + 1, num_iterations);
+
+        //                 if ( is_running_locally && ReturnThreadNumberOfCurrentThread( ) == 0 ) {
+        //                     progress_bar->Update(translation_counter * num_rotation_steps + rotation_counter + 1);
+        //                 }
+
+        //                 // if ( cross_corr > best_cross_corr ) {
+        //                 //     best_cross_corr        = cross_corr;
+        //                 //     best_axial_translation = axial_translation;
+        //                 //     best_azimuth_rotation  = azimuth_rotation;
+        //                 // }
+
+        //                 // Add measurements to vectors
+        //                 // cross_corr_vec[index]        = cross_corr;
+        //                 // axial_translation_vec[index] = axial_translation;
+        //                 // azimuth_rotation_vec[index]  = azimuth_rotation;
+        //                 // index++;
+
+        //                 // wxPrintf("Axial translation=%f, Azimuth rotation=%f, cross_corr=%f\n", axial_translation, r2d * azimuth_rotation, cross_corr);
+        //                 // #pragma omp critical
+        //                 //                 log_file << wxString::Format("%f\t\t\t%f\t\t\t%f", axial_translation * pixel_size, r2d * azimuth_rotation, cross_corr).ToStdString( ) << std::endl;
+        //                 //                 // helical_average.QuickAndDirtyWriteSlices(cur_filename, 1, helical_average.logical_z_dimension, true);
+        //                 //                 write_counter++;
+        //                 //                 progress_bar->Update(++current_num_steps);
+        //             }
+        //         }
+
+        // Sort in descending order by cross corr via lambda function
+        std::sort(results_vec.begin( ), results_vec.end( ), [](const auto& a, const auto& b) {
+            return std::get<0>(a) > std::get<0>(b); // Sort by cross correlation score
+        });
+
+        for ( int i = 0; i < results_vec.size( ); i++ ) {
+            cross_corr        = std::get<0>(results_vec[i]);
+            axial_translation = std::get<1>(results_vec[i]);
+            azimuth_rotation  = std::get<2>(results_vec[i]);
+            log_file << wxString::Format("%f\t\t\t%f\t\t\t%f", cross_corr, axial_translation, azimuth_rotation).ToStdString( ) << std::endl;
+        }
         log_file.close( );
+
+        best_cross_corr        = std::get<0>(results_vec[0]);
+        best_axial_translation = std::get<1>(results_vec[0]);
+        best_azimuth_rotation  = std::get<2>(results_vec[0]);
+        wxPrintf("\nBest fit from brute force search:\n");
+        wxPrintf("Axial translation=%f, Azimuth rotation=%f, cross corr=%f\n", best_axial_translation, best_azimuth_rotation, best_cross_corr);
     }
 
     return true;
