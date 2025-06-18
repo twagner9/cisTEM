@@ -383,6 +383,55 @@ AC_ARG_ENABLE(openmp, AS_HELP_STRING([--enable-openmp],[Compile with OpenMP thre
   CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
   fi
   ])
+
+# Blush for 3D refinement
+AC_ARG_ENABLE(blush, AS_HELP_STRING([--enable-blush],[Compile with LibTorch for 3D refinement [default=no]]),
+  [enable_blush="$enableval"],
+  [enable_blush="no"]
+)
+
+AC_ARG_WITH([libtorch], AS_HELP_STRING([--with-libtorch=DIR],[Path to LibTorch directory containing libs to run blush refinement (default: system)]),
+  [libtorch_path="$withval"],
+  [libtorch_path=""]
+)
+
+BLUSH_CPPFLAGS=""
+BLUSH_LDFLAGS=""
+BLUSH_LIBS=""
+
+if test "x$enable_blush" = "xyes"; then
+  AC_DEFINE([BLUSH], [], [Define the Blush flag])
+
+  if test "x$libtorch_path" != "x"; then
+    BLUSH_CPPFLAGS="-I$libtorch_path/include/torch/csrc/api/include -I$libtorch_path/include"
+    BLUSH_LDFLAGS="-L$libtorch_path/lib"
+  fi
+
+  CPPFLAGS_SAVED="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $BLUSH_CPPFLAGS"
+
+  # NOTE: this will issue a warning even when torch.h is found, because autoconf still uses the C preprocessor for
+  # checking headers, but we need to use C++ for LibTorch.
+  AC_LANG_PUSH([C++])
+  AC_CHECK_HEADERS([torch/torch.h], 
+    [AC_MSG_NOTICE([Found LibTorch header])], [AC_MSG_ERROR([LibTorch header not found. Please install LibTorch, disable blush, or specify the path with --with-libtorch])]
+  )
+  AC_LANG_POP([C++])
+  CPPFLAGS="$CPPFLAGS_SAVED"
+
+  AC_CHECK_FILES([$libtorch_path/lib/libtorch.so $libtorch_path/lib/libtorch_cpu.so $libtorch_path/lib/libc10.so],
+    [AC_MSG_NOTICE([Found LibTorch library])],
+    [AC_MSG_ERROR([LibTorch library not found. Please install LibTorch, disable blush, or specify the path with --with-libtorch])]
+  )
+
+  BLUSH_LIBS="$BLUSH_LDFLAGS -ltorch -ltorch_cpu -lc10"
+fi
+
+AC_SUBST([BLUSH_CPPFLAGS])
+AC_SUBST([BLUSH_LDFLAGS])
+AC_SUBST([BLUSH_LIBS])
+
+AM_CONDITIONAL([ENABLE_BLUSH], [test "x$enable_blush" = "xyes"])
   
 
 
