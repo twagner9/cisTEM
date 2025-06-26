@@ -1,4 +1,5 @@
 #include "../core/gui_core_headers.h"
+
 wxDEFINE_EVENT(wxEVT_RESAMPLE_VOLUME_EVENT, ReturnProcessedImageEvent);
 wxDEFINE_EVENT(wxEVT_COMMAND_IMPOSESYMMETRY_DONE, wxThreadEvent);
 
@@ -18,6 +19,24 @@ AbInitio3DPanel::AbInitio3DPanel(wxWindow* parent)
     wxSize input_size = InputSizer->GetMinSize( );
     input_size.x += wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
     input_size.y = -1;
+
+    // If blush is enabled, we'll give the user the option to use it or not.
+#ifdef BLUSH
+    wxBoxSizer*   BlushSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* BlushLabel = new wxStaticText(ExpertPanel, wxID_ANY, "Enable Blush Denoising?");
+    fgSizer1->Add(BlushLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+    // BlushSizer->Add(BlushLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+
+    // my_refinement_manager.BlushCheckbox = new wxCheckBox(ExpertPanel, wxID_ANY, "");
+    my_abinitio_manager.EnableBlushYesButton = new wxRadioButton(ExpertPanel, wxID_ANY, wxT("Yes"), wxDefaultPosition, wxDefaultSize, 0);
+    my_abinitio_manager.EnableBlushNoButton  = new wxRadioButton(ExpertPanel, wxID_ANY, wxT("No"), wxDefaultPosition, wxDefaultSize, 0);
+    BlushSizer->Add(my_abinitio_manager.EnableBlushYesButton, 0, wxALL, 5);
+    BlushSizer->Add(my_abinitio_manager.EnableBlushNoButton, 0, wxALL, 5);
+    // BlushSizer->Add(my_refinement_manager.BlushCheckbox, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT, 5);
+    fgSizer1->Add(BlushSizer, wxEXPAND);
+    fgSizer1->Layout( );
+#endif
+
     ExpertPanel->SetMinSize(input_size);
     ExpertPanel->SetSize(input_size);
 
@@ -455,6 +474,11 @@ void AbInitio3DPanel::AbInitio3DPanel::SetDefaults( ) {
 
         AlwaysApplySymmetryNoButton->SetValue(true);
         ImagesPerClassSpinCtrl->SetValue(5);
+
+#ifdef BLUSH
+        my_abinitio_manager.EnableBlushNoButton->SetValue(true);
+        my_abinitio_manager.EnableBlushYesButton->SetValue(false);
+#endif
 
         ExpertPanel->Thaw( );
     }
@@ -959,6 +983,10 @@ void AbInitioManager::BeginRefinementCycle( ) {
     active_reconstruction_run_profile = run_profiles_panel->run_profile_manager.run_profiles[my_parent->ReconstructionRunProfileComboBox->GetSelection( )];
 
     active_auto_set_percent_used = my_parent->AutoPercentUsedYesRadio->GetValue( );
+
+#ifdef BLUSH
+    apply_blush_denoising = EnableBlushYesButton->GetValue( );
+#endif
 
     // need to take into account symmetry
 
@@ -1523,9 +1551,11 @@ void AbInitioManager::SetupMerge3dJob( ) {
         wxString dump_file_seed_1             = main_frame->current_project.scratch_directory.GetFullPath( ) + wxString::Format("/Startup/startup_dump_file_%i_odd_.dump", class_counter);
         wxString dump_file_seed_2             = main_frame->current_project.scratch_directory.GetFullPath( ) + wxString::Format("/Startup/startup_dump_file_%i_even_.dump", class_counter);
 
+        bool     use_blush                   = false;
         bool     save_orthogonal_views_image = false;
         wxString orthogonal_views_filename   = "";
         float    wiener_nominator;
+        float    particle_diameter = static_cast<float>(active_refinement_package->estimated_particle_size_in_angstroms);
 
         /*if (start_with_reconstruction == true) wiener_nominator = 100.0f;
 		else
@@ -1550,7 +1580,7 @@ void AbInitioManager::SetupMerge3dJob( ) {
         //wiener_nominator = 50.0f;
         //my_parent->WriteInfoText(wxString::Format("weiner nominator = %f", wiener_nominator));
 
-        my_parent->current_job_package.AddJob("ttttfffttibtiff", output_reconstruction_1.ToUTF8( ).data( ),
+        my_parent->current_job_package.AddJob("ttttfffttibtifffb", output_reconstruction_1.ToUTF8( ).data( ),
                                               output_reconstruction_2.ToUTF8( ).data( ),
                                               output_reconstruction_filtered.ToUTF8( ).data( ),
                                               output_resolution_statistics.ToUTF8( ).data( ),
@@ -1561,7 +1591,8 @@ void AbInitioManager::SetupMerge3dJob( ) {
                                               save_orthogonal_views_image,
                                               orthogonal_views_filename.ToUTF8( ).data( ),
                                               number_of_reconstruction_jobs,
-                                              wiener_nominator, alignment_res);
+                                              wiener_nominator, alignment_res,
+                                              particle_diameter, apply_blush_denoising);
     }
 }
 
