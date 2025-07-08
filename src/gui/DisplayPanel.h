@@ -379,6 +379,8 @@ class
 
     int  label_mode;
     bool image_picking_mode_enabled;
+    bool coords_picking_mode_enabled;
+    bool filament_picking_mode_enabled;
 
     wxBitmap panel_bitmap;
 

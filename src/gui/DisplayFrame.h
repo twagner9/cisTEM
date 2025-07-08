@@ -29,6 +29,7 @@ class DisplayFrame : public DisplayFrameParent {
     // Select menu
     void OnImageSelectionModeClick(wxCommandEvent& event);
     void OnCoordsSelectionModeClick(wxCommandEvent& event);
+    void OnFilamentSelectionModeClick(wxCommandEvent& event);
     void OnOpenTxtClick(wxCommandEvent& event);
     void OnSaveTxtClick(wxCommandEvent& event);
     void OnSaveTxtAsClick(wxCommandEvent& event);
@@ -50,8 +51,10 @@ class DisplayFrame : public DisplayFrameParent {
   private:
     bool     is_fullscreen;
     wxString remember_path;
-    bool     LoadCoords(wxString current_line, long& x, long& y, long& image_number);
-    bool     LoadImageSelections(wxString current_line);
+    bool     LoadCoords(std::istringstream& current_line, long& x, long& y, long& image_number);
+    bool     LoadImageSelections(std::istringstream& current_line);
+    bool     CheckIfImagesAreSelectedAndIssueWarning( );
+    bool     CheckIfCoordsAreSelectedAndIssueWarning( );
     void     ClearTextFileFromPanel( );
 };
 

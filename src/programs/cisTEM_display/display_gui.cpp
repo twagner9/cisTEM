@@ -87,6 +87,9 @@ DisplayFrameParent::DisplayFrameParent( wxWindow* parent, wxWindowID id, const w
 	DisplaySelectMenu->Append( SelectCoordsSelectionMode );
 	SelectCoordsSelectionMode->Enable( false );
 
+	SelectFilamentSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Filament Selection Mode") ) , wxEmptyString, wxITEM_RADIO );
+	DisplaySelectMenu->Append( SelectFilamentSelectionMode );
+
 	DisplaySelectMenu->AppendSeparator();
 
 	SelectInvertSelection = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Invert Selection") ) , wxEmptyString, wxITEM_NORMAL );
@@ -162,6 +165,7 @@ DisplayFrameParent::DisplayFrameParent( wxWindow* parent, wxWindowID id, const w
 	DisplayLabelMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnLocationNumberClick ), this, LabelLocationNumber->GetId());
 	DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnImageSelectionModeClick ), this, SelectImageSelectionMode->GetId());
 	DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnCoordsSelectionModeClick ), this, SelectCoordsSelectionMode->GetId());
+	DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnFilamentSelectionModeClick ), this, SelectFilamentSelectionMode->GetId());
 	DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnInvertSelectionClick ), this, SelectInvertSelection->GetId());
 	DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnClearSelectionClick ), this, SelectClearSelection->GetId());
 	OptionsSetPointSize->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnSize3 ), this, CoordSize3->GetId());
