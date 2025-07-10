@@ -78,17 +78,17 @@ DisplayFrameParent::DisplayFrameParent( wxWindow* parent, wxWindowID id, const w
 	m_menubar2->Append( DisplayLabelMenu, wxT("Label") );
 
 	DisplaySelectMenu = new wxMenu();
-	SelectImageSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Image Selection Mode") ) , wxEmptyString, wxITEM_RADIO );
+	SelectImageSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Image Selection Mode") ) , wxEmptyString, wxITEM_NORMAL );
 	DisplaySelectMenu->Append( SelectImageSelectionMode );
 	SelectImageSelectionMode->Enable( false );
-	SelectImageSelectionMode->Check( true );
 
-	SelectCoordsSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Coords Selection Mode") ) , wxEmptyString, wxITEM_RADIO );
+	SelectCoordsSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Coords Selection Mode") ) , wxEmptyString, wxITEM_NORMAL );
 	DisplaySelectMenu->Append( SelectCoordsSelectionMode );
 	SelectCoordsSelectionMode->Enable( false );
 
-	SelectFilamentSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Filament Selection Mode") ) , wxEmptyString, wxITEM_RADIO );
+	SelectFilamentSelectionMode = new wxMenuItem( DisplaySelectMenu, wxID_ANY, wxString( wxT("Filament Selection Mode") ) , wxEmptyString, wxITEM_NORMAL );
 	DisplaySelectMenu->Append( SelectFilamentSelectionMode );
+	SelectFilamentSelectionMode->Enable( false );
 
 	DisplaySelectMenu->AppendSeparator();
 

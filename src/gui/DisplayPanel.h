@@ -18,6 +18,7 @@ struct Coord {
     long image_number;
     long x_pos;
     long y_pos;
+    long pair_index; // Used for filament selection mode where every coordinate has a pair
 };
 
 class CoordTracker {
@@ -26,13 +27,14 @@ class CoordTracker {
     DisplayNotebookPanel* parent_notebook;
     long                  number_of_coords;
     long                  number_allocated;
+    long                  last_selected_image = -1;
     Coord*                coords;
 
     CoordTracker(wxWindow* parent);
     ~CoordTracker( );
 
     void Clear( );
-    void ToggleCoord(long wanted_image, long wanted_x, long wanted_y);
+    void ToggleCoord(long wanted_image, long wanted_x, long wanted_y, const bool& filament_selection_mode_enabled);
     void AddCoord(long wanted_image, long wanted_x, long wanted_y);
     void RemoveCoord(long coord_to_remove);
     void RectangleRemoveCoord(long wanted_image, long start_x, long start_y, long end_x, long end_y);

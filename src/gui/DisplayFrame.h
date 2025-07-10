@@ -53,8 +53,7 @@ class DisplayFrame : public DisplayFrameParent {
     wxString remember_path;
     bool     LoadCoords(std::istringstream& current_line, long& x, long& y, long& image_number);
     bool     LoadImageSelections(std::istringstream& current_line);
-    bool     CheckIfImagesAreSelectedAndIssueWarning( );
-    bool     CheckIfCoordsAreSelectedAndIssueWarning( );
+    bool     IssueSelectionModeChangeWarning( );
     void     ClearTextFileFromPanel( );
 };
 

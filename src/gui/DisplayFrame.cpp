@@ -84,50 +84,81 @@ void DisplayFrame::OnLocationNumberClick(wxCommandEvent& event) {
 void DisplayFrame::OnImageSelectionModeClick(wxCommandEvent& event) {
     // if we are already in selections mode, we don't want to do anything, so
     // make a check.
-    if ( ! CheckIfCoordsAreSelectedAndIssueWarning( ) )
-        cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->Clear( );
+    bool switch_mode = true;
+    // first check if there are any selections
+    // if there are, then perform the check below; othrewise, just update the GUI
+    if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->number_of_coords > 0 ) {
+        if ( IssueSelectionModeChangeWarning( ) )
+            cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->Clear( );
+        else
+            switch_mode = false;
+    }
 
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled    = true;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled   = false;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled = false;
-    SelectInvertSelection->Enable(true);
+    if ( switch_mode ) {
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled    = true;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled   = false;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled = false;
+        SelectInvertSelection->Enable(true);
 
-    ClearTextFileFromPanel( );
-    Refresh( );
-    Update( );
+        ClearTextFileFromPanel( );
+        Refresh( );
+        Update( );
+    }
 }
 
 void DisplayFrame::OnCoordsSelectionModeClick(wxCommandEvent& event) {
-    if ( CheckIfImagesAreSelectedAndIssueWarning( ) )
-        cisTEMDisplayPanel->ClearSelection(false);
+    bool switch_mode = true;
+    if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->number_of_selections > 0 || cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->number_of_coords > 0 ) {
+        if ( IssueSelectionModeChangeWarning( ) ) {
+            if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled )
+                cisTEMDisplayPanel->ReturnCurrentPanel( )->ClearSelection(false);
+            else
+                cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->Clear( );
+        }
+        else {
+            switch_mode = false;
+        }
+    }
 
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled   = true;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled    = false;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled = false;
-    SelectInvertSelection->Enable(false);
+    if ( switch_mode ) {
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled        = true;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled         = false;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled      = false;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->last_selected_image = -1;
+        SelectInvertSelection->Enable(false);
 
-    ClearTextFileFromPanel( );
-    Refresh( );
-    Update( );
+        ClearTextFileFromPanel( );
+        Refresh( );
+        Update( );
+    }
 }
 
 void DisplayFrame::OnFilamentSelectionModeClick(wxCommandEvent& event) {
-    if ( CheckIfImagesAreSelectedAndIssueWarning( ) )
-        cisTEMDisplayPanel->ClearSelection(false);
+    bool switch_mode = true;
+    if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->number_of_selections > 0 || cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->number_of_coords > 0 ) {
+        if ( IssueSelectionModeChangeWarning( ) ) {
+            if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled )
+                cisTEMDisplayPanel->ReturnCurrentPanel( )->ClearSelection(false);
+            else
+                cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->Clear( );
+        }
+        else {
+            switch_mode = false;
+        }
+    }
 
-    // This is a maybe; we may be able to just keep any selected coords and swap between modes
-    // if ( CheckIfCoordsAreSelectedAndIssueWarning( ) )
-    // cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->Clear( );
+    if ( switch_mode ) {
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled      = true;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->show_selection_distances           = true;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled        = false;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled         = false;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->last_selected_image = -1;
+        SelectInvertSelection->Enable(false);
 
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled = true;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->show_selection_distances      = true;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled   = false;
-    cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled    = false;
-    SelectInvertSelection->Enable(false);
-
-    ClearTextFileFromPanel( );
-    Refresh( );
-    Update( );
+        ClearTextFileFromPanel( );
+        Refresh( );
+        Update( );
+    }
 }
 
 void DisplayFrame::OnOpenTxtClick(wxCommandEvent& event) {
@@ -536,17 +567,18 @@ void DisplayFrame::OnUpdateUI(wxUpdateUIEvent& event) {
             SelectSaveTxt->Enable(false);
         }
 
-        // Keep picking mode radio buttons visually current
+        // NOTE: previously used radio check to visually represent selection mode;
+        // However, upon adding the third option the radio button would fail to update properly
         if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled ) {
-            SelectImageSelectionMode->Check(true);
+            // SelectImageSelectionMode->Check(true);
             SelectInvertSelection->Enable(true);
         }
         else if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->coords_picking_mode_enabled ) {
-            SelectCoordsSelectionMode->Check(true);
+            // SelectCoordsSelectionMode->Check(true);
             SelectInvertSelection->Enable(false);
         }
         else if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled ) {
-            SelectFilamentSelectionMode->Check(true);
+            // SelectFilamentSelectionMode->Check(true);
             OptionsShowSelectionDistances->Enable(false);
             SelectInvertSelection->Enable(false);
         }
@@ -612,7 +644,7 @@ bool DisplayFrame::LoadCoords(std::istringstream& current_line, long& x, long& y
 
     // Check that the x and y coordinates are box size, and num images within range.
     if ( x < cisTEMDisplayPanel->ReturnCurrentPanel( )->ReturnImageXSize( ) && y < cisTEMDisplayPanel->ReturnCurrentPanel( )->ReturnImageYSize( ) && image_number <= cisTEMDisplayPanel->ReturnCurrentPanel( )->ReturnNumberofImages( ) ) {
-        cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->ToggleCoord(image_number, x, y);
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->ToggleCoord(image_number, x, y, cisTEMDisplayPanel->ReturnCurrentPanel( )->filament_picking_mode_enabled);
         return true;
     }
     else {
@@ -652,34 +684,15 @@ void DisplayFrame::ClearTextFileFromPanel( ) {
 }
 
 /**
- * @brief Helper function which will issue a warning when changing modes if selections have already been made.
- * Depending on user response, the caller will then either clear or keep selections.
+ * @brief Helper for prompting user if they wish to save selections before
+ * swithcing selection modes.
  * 
- * @return true User wants to clear selections.
- * @return false User wants to keep selections or no selections currently exist.
+ * @return true If user wants to wipe currently held selections.
+ * @return false If user wants to save selections.
  */
-bool DisplayFrame::CheckIfImagesAreSelectedAndIssueWarning( ) {
-    if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled ) {
-        if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->number_of_selections > 0 ) {
-            wxMessageDialog question_dialog(this, "By switching the selection mode, you will lose your current image selections.\nDo you want to continue?", "Switch Selection Modes?", wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION);
-            if ( question_dialog.ShowModal( ) == wxID_YES ) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/**
- * @brief Helper function which will issue a warning when changing modes if selections have already been made.
- * Depending on user response, the caller will then either clear or keep selections.
- * 
- * @return true User wants to clear selections.
- * @return false User wants to keep selections or no selections currently exist.
- */
-bool DisplayFrame::CheckIfCoordsAreSelectedAndIssueWarning( ) {
-    if ( ! cisTEMDisplayPanel->ReturnCurrentPanel( )->image_picking_mode_enabled && cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->number_of_coords > 0 ) {
-        wxMessageDialog question_dialog(this, "By switching the selection mode, you will lose your current coordinates selections if they are unsaved.\nDo you want to continue?", "Swtich Selection Modes?", wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION);
+bool DisplayFrame::IssueSelectionModeChangeWarning( ) {
+    if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->coord_tracker->number_of_coords > 0 || cisTEMDisplayPanel->ReturnCurrentPanel( )->number_of_selections > 0 ) {
+        wxMessageDialog question_dialog(this, "By switching the selection mode, you will lose your current selections if they are unsaved. You can save by clicking File and selecting a save option.\nDo you want to continue?", "Swtich Selection Modes?", wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION);
         if ( question_dialog.ShowModal( ) == wxID_YES )
             return true;
     }

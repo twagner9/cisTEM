@@ -920,11 +920,15 @@ void DisplayPanel::OpenFile(wxString wanted_filename, wxString wanted_tab_title,
     // if there is only one image, then set single image mode to true by default
     if ( is_from_display_program ) {
         if ( my_panel->included_image_numbers.GetCount( ) == 1 ) {
-            my_panel->single_image               = true;
-            my_panel->image_picking_mode_enabled = false;
+            my_panel->single_image                  = true;
+            my_panel->image_picking_mode_enabled    = false;
+            my_panel->coords_picking_mode_enabled   = true;
+            my_panel->filament_picking_mode_enabled = false;
         }
         else {
-            my_panel->image_picking_mode_enabled = true;
+            my_panel->image_picking_mode_enabled    = true;
+            my_panel->coords_picking_mode_enabled   = false;
+            my_panel->filament_picking_mode_enabled = false;
         }
     }
 
@@ -1633,7 +1637,8 @@ void DisplayNotebookPanel::UpdateImageStatusInfo(int x_pos, int y_pos) {
         else {
             wxString StatusText = wxT("");
 
-            // 		if (selected_distance != 0 && show_selection_distances ) StatusText += wxT("Dist=") + wxString::Format(wxT("%f"), selected_distance);
+            if ( selected_distance != 0 && show_selection_distances )
+                StatusText += wxT("Dist=") + wxString::Format(wxT("%f"), selected_distance);
             // 		if (image_picking_mode_enabled == INTEGRATE_PICK && integrate_box_x_pos != -1 && integrate_box_y_pos != -1) StatusText += wxT(" Integrated Value =") + wxString::Format(wxT("%f"), integrated_value);
             parent_display_panel->StatusText->SetLabel(StatusText);
         }
@@ -2000,8 +2005,8 @@ void DisplayNotebookPanel::OnLeftDown(wxMouseEvent& event) {
 
                     parent_display_panel->SetTabNameUnsaved( );
                 }
-                else if ( coords_picking_mode_enabled ) {
-                    coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos);
+                else {
+                    coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled);
                     parent_display_panel->SetTabNameUnsaved( );
                 }
                 Refresh( );
@@ -2019,7 +2024,7 @@ void DisplayNotebookPanel::OnLeftDown(wxMouseEvent& event) {
 
             // We must be in coords mode
             else if ( parent_display_panel->is_from_display_program && ! image_picking_mode_enabled ) {
-                coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos);
+                coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled);
                 parent_display_panel->SetTabNameUnsaved( );
             }
         }
@@ -2055,6 +2060,7 @@ void DisplayNotebookPanel::OnLeaveWindow(wxMouseEvent& event) {
 void DisplayNotebookPanel::OnMotion(wxMouseEvent& event) {
     long x_pos;
     long y_pos;
+    long current_image;
 
     event.GetPosition(&x_pos, &y_pos);
 
@@ -2129,6 +2135,93 @@ void DisplayNotebookPanel::OnMotion(wxMouseEvent& event) {
 		 Update();
 	 }
 	 else // if the right button is down and the popup exists move it..*/
+    // need to add a condition that the following is only true in filament picking mode where show_selection_distance is true and we are in coordinates mode not single image mode
+
+    // FIXME: this isn't really a good place to put this; a better place might be a specfic left-click function, or the same place that the
+    // coordinate addition is placed
+    // if ( event.m_leftDown && filament_picking_mode_enabled ) {
+    //     constexpr int INVALID_INDEX    = -1;
+    //     const double  threshold        = 20.0;
+    //     long          closest_index    = INVALID_INDEX;
+    //     double        closest_distance = 999999;
+
+    //     // Step 1: Find the closest coordinate
+    //     for ( long i = 0; i < coord_tracker->number_of_coords; ++i ) {
+    //         const Coord& c = coord_tracker->coords[i];
+
+    //         long relative_index = c.image_number - current_location;
+
+    //         // Less than or greater than the number of images that fit in the panel.
+    //         if ( relative_index < 0 || relative_index >= images_in_x * images_in_y )
+    //             continue;
+
+    //         // Column and row of the image for the current panel setup
+    //         int tile_col = relative_index % images_in_x;
+    //         int tile_row = relative_index / images_in_x;
+
+    //         // Pixel offsets for top-left corner of the image
+    //         int offset_x = tile_col * current_x_size;
+    //         int offset_y = tile_row * current_y_size;
+
+    //         // Final screen coordinates
+    //         int coord_screen_x = offset_x + c.x_pos * actual_scale_factor;
+    //         int coord_screen_y = offset_y + c.y_pos * actual_scale_factor;
+
+    //         // Calculate distance from mouse position
+    //         double dist = std::hypot(double(x_pos - coord_screen_x),
+    //                                  double(y_pos - coord_screen_y));
+
+    //         // Closer than the currently closest distance
+    //         if ( dist < closest_distance ) {
+    //             closest_distance = dist;
+    //             closest_index    = i;
+    //         }
+    //     }
+
+    //     // Within threshold, so now account for selection/deselection
+    //     if ( closest_index != INVALID_INDEX && closest_distance < threshold ) {
+    //         long image_number = coord_tracker->coords[closest_index].image_number;
+
+    //         // Count total points in this image and find last point
+    //         int  point_count         = 0;
+    //         long last_index_in_image = INVALID_INDEX;
+
+    //         for ( long i = 0; i < coord_tracker->number_of_coords; ++i ) {
+    //             if ( coord_tracker->coords[i].image_number == image_number ) {
+    //                 point_count++;
+    //                 last_index_in_image = i;
+    //             }
+    //         }
+
+    //         // See if the point has a valid pair
+    //         long pair_index = INVALID_INDEX;
+    //         if ( closest_index % 2 == 0 ) {
+    //             if ( closest_index + 1 < coord_tracker->number_of_coords && coord_tracker->coords[closest_index + 1].image_number == image_number ) {
+    //                 pair_index = closest_index + 1;
+    //             }
+    //         }
+    //         else {
+    //             if ( closest_index - 1 >= 0 && coord_tracker->coords[closest_index - 1].image_number == image_number ) {
+    //                 pair_index = closest_index - 1;
+    //             }
+    //         }
+
+    //         if ( pair_index != INVALID_INDEX ) {
+    //             // Case A: Remove valid pair
+    //             long first  = std::max(closest_index, pair_index);
+    //             long second = std::min(closest_index, pair_index);
+    //             coord_tracker->RemoveCoord(first);
+    //             coord_tracker->RemoveCoord(second);
+    //         }
+    //         else if ( closest_index == last_index_in_image ) {
+    //             // Case B: Remove the last lone point
+    //             coord_tracker->RemoveCoord(closest_index);
+    //         }
+
+    //         ReDrawPanel( );
+    //     }
+    // }
+
     if ( event.m_rightDown && parent_display_panel->popup_exists ) {
         // At the time of writing, when the popupwindow goes off the size of screen
         // it's draw direction is reveresed.. For this reason i've included this
@@ -2847,15 +2940,84 @@ void DisplayNotebookPanel::OnPaint(wxPaintEvent& evt) {
 
                                         // if this coord is the last coord, and show selection distances is true, show the distance.
 
-                                        if ( coord_counter == coord_tracker->number_of_coords - 1 && coord_tracker->number_of_coords > 1 && show_selection_distances && coord_tracker->coords[coord_counter].image_number == coord_tracker->coords[coord_counter - 1].image_number ) {
-                                            dc.DrawLine((coord_tracker->coords[coord_counter].x_pos - single_image_x) * actual_scale_factor, (coord_tracker->coords[coord_counter].y_pos - single_image_y) * actual_scale_factor, (coord_tracker->coords[coord_counter - 1].x_pos - single_image_x) * actual_scale_factor, (coord_tracker->coords[coord_counter - 1].y_pos - single_image_y) * actual_scale_factor);
+                                        // if ( coord_counter == coord_tracker->number_of_coords - 1 && coord_tracker->number_of_coords > 1 && show_selection_distances && coord_tracker->coords[coord_counter].image_number == coord_tracker->coords[coord_counter - 1].image_number ) {
+                                        if ( coord_tracker->number_of_coords >= 2 && show_selection_distances ) {
+                                            int x1, y1, x2, y2;
+                                            if ( filament_picking_mode_enabled ) {
+                                                for ( long i = 1; i < coord_tracker->number_of_coords; i += 2 ) {
+                                                    if ( coord_tracker->coords[i].image_number == counter && coord_tracker->coords[i - 1].image_number == counter ) {
+                                                        x1 = (coord_tracker->coords[i - 1].x_pos - single_image_x) * actual_scale_factor;
+                                                        y1 = (coord_tracker->coords[i - 1].y_pos - single_image_y) * actual_scale_factor;
+                                                        x2 = (coord_tracker->coords[i].x_pos - single_image_x) * actual_scale_factor;
+                                                        y2 = (coord_tracker->coords[i].y_pos - single_image_y) * actual_scale_factor;
+                                                        dc.DrawLine(x1, y1, x2, y2);
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                if ( coord_counter == coord_tracker->number_of_coords - 1 && coord_tracker->coords[coord_counter].image_number == counter && coord_tracker->coords[coord_counter - 1].image_number == counter ) {
+                                                    x1 = (coord_tracker->coords[coord_counter].x_pos - single_image_x) * actual_scale_factor;
+                                                    y1 = (coord_tracker->coords[coord_counter].y_pos - single_image_y) * actual_scale_factor;
+                                                    x2 = (coord_tracker->coords[coord_counter - 1].x_pos - single_image_x) * actual_scale_factor;
+                                                    y2 = (coord_tracker->coords[coord_counter - 1].y_pos - single_image_x) * actual_scale_factor;
+                                                    dc.DrawLine(x1, y1, x2, y2);
+                                                }
+                                            }
                                         }
                                     }
                                     else {
                                         dc.DrawCircle(x * current_x_size + (coord_tracker->coords[coord_counter].x_pos * actual_scale_factor), y * current_y_size + (coord_tracker->coords[coord_counter].y_pos * actual_scale_factor), point_size);
 
-                                        if ( coord_counter == coord_tracker->number_of_coords - 1 && coord_tracker->number_of_coords > 1 && show_selection_distances && coord_tracker->coords[coord_counter].image_number == coord_tracker->coords[coord_counter - 1].image_number ) {
-                                            dc.DrawLine(x * current_x_size + (coord_tracker->coords[coord_counter].x_pos * actual_scale_factor), y * current_y_size + (coord_tracker->coords[coord_counter].y_pos * actual_scale_factor), x * current_x_size + (coord_tracker->coords[coord_counter - 1].x_pos * actual_scale_factor), y * current_y_size + (coord_tracker->coords[coord_counter - 1].y_pos * actual_scale_factor));
+                                        // if ( coord_counter == coord_tracker->number_of_coords - 1 && coord_tracker->number_of_coords > 1 && show_selection_distances && coord_tracker->coords[coord_counter].image_number == coord_tracker->coords[coord_counter - 1].image_number ) {
+                                        //     dc.DrawLine(x * current_x_size + (coord_tracker->coords[coord_counter].x_pos * actual_scale_factor), y * current_y_size + (coord_tracker->coords[coord_counter].y_pos * actual_scale_factor), x * current_x_size + (coord_tracker->coords[coord_counter - 1].x_pos * actual_scale_factor), y * current_y_size + (coord_tracker->coords[coord_counter - 1].y_pos * actual_scale_factor));
+                                        // need to add here check if filament_picking is true when added later
+                                        if ( show_selection_distances && coord_tracker->number_of_coords >= 2 ) {
+                                            if ( filament_picking_mode_enabled ) {
+                                                dc.SetPen(wxPen(*wxRED, 2));
+
+                                                for ( long i = 1; i < coord_tracker->number_of_coords; i += 2 ) {
+                                                    const auto& a = coord_tracker->coords[i - 1];
+                                                    const auto& b = coord_tracker->coords[i];
+
+                                                    // only draw if both belong to THIS image (counter)
+                                                    // otherwise raise a warning to stop
+                                                    if ( a.image_number != counter || b.image_number != counter )
+                                                        continue;
+
+                                                    long img = a.image_number;
+                                                    //In your GUI layout, images are often arranged in a grid with: images_in_x (number of images shown horizontally) and images_in_y  (number of images shown vertically)
+                                                    long number_of_images_to_draw = images_in_x * images_in_y;
+
+                                                    // Make sure image is in current display range
+                                                    if ( img < current_location || img >= current_location + number_of_images_to_draw )
+                                                        continue;
+
+                                                    // Calculate tile location based on relative image index
+                                                    long relative_index = img - current_location;
+                                                    long tile_col       = relative_index % images_in_x;
+                                                    long tile_row       = relative_index / images_in_x;
+
+                                                    int offset_x = tile_col * current_x_size;
+                                                    int offset_y = tile_row * current_y_size;
+
+                                                    int x1 = offset_x + static_cast<int>(a.x_pos * actual_scale_factor);
+                                                    int y1 = offset_y + static_cast<int>(a.y_pos * actual_scale_factor);
+                                                    int x2 = offset_x + static_cast<int>(b.x_pos * actual_scale_factor);
+                                                    int y2 = offset_y + static_cast<int>(b.y_pos * actual_scale_factor);
+
+                                                    dc.DrawLine(x1, y1, x2, y2);
+                                                }
+                                            }
+                                            else {
+                                                bool last_coord_and_prev_coord_on_same_image = coord_counter == coord_tracker->number_of_coords - 1 && coord_tracker->coords[coord_counter].image_number == coord_tracker->coords[coord_counter - 1].image_number;
+                                                if ( last_coord_and_prev_coord_on_same_image ) {
+                                                    int x1 = x * current_x_size + (coord_tracker->coords[coord_counter].x_pos * actual_scale_factor);
+                                                    int y1 = y * current_y_size + (coord_tracker->coords[coord_counter].y_pos * actual_scale_factor);
+                                                    int x2 = x * current_x_size + (coord_tracker->coords[coord_counter - 1].x_pos * actual_scale_factor);
+                                                    int y2 = y * current_y_size + (coord_tracker->coords[coord_counter - 1].y_pos * actual_scale_factor);
+                                                    dc.DrawLine(x1, y1, x2, y2);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3925,9 +4087,8 @@ void CoordTracker::Clear( ) {
     }
 }
 
-void CoordTracker::ToggleCoord(long wanted_image, long wanted_x, long wanted_y) {
+void CoordTracker::ToggleCoord(long wanted_image, long wanted_x, long wanted_y, const bool& filament_selection_mode_enabled) {
     // first check to see if it is already there..
-
     bool was_found = false;
 
     for ( long counter = 0; counter < number_of_coords; counter++ ) {
@@ -3948,7 +4109,22 @@ void CoordTracker::ToggleCoord(long wanted_image, long wanted_x, long wanted_y) 
     // if it wasn't found, then add it.
 
     if ( ! was_found ) {
+        if ( filament_selection_mode_enabled ) {
+            if ( last_selected_image != -1 && wanted_image != last_selected_image ) {
+                int count = 0;
+                for ( long i = 0; i < number_of_coords; i++ ) {
+                    if ( coords[i].image_number == last_selected_image ) {
+                        count++;
+                    }
+                }
+                if ( count % 2 != 0 ) {
+                    wxMessageBox(wxString::Format("Image %ld has an odd number of selected points (%i).\nAdd or remove a point in image %ld before selecting a new image.", last_selected_image, count, last_selected_image), "Unpaired Selection Warning", wxOK | wxICON_WARNING);
+                    return;
+                }
+            }
+        }
         AddCoord(wanted_image, wanted_x, wanted_y);
+        last_selected_image = wanted_image;
     }
     // we need to know the distance between the last two coords (if possible), so that if
     // the user selects show_selection_distance - the distance will be displayed.
@@ -4032,7 +4208,7 @@ void CoordTracker::RemoveCoord(long coord_to_remove) {
 
         // copy back..
 
-        buffer_counter = 0.;
+        buffer_counter = 0;
 
         for ( counter = coord_to_remove; counter < number_of_coords; counter++ ) {
             coords[counter].image_number = coord_buffer[buffer_counter].image_number;
