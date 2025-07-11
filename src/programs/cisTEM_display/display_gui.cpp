@@ -127,6 +127,10 @@ DisplayFrameParent::DisplayFrameParent( wxWindow* parent, wxWindowID id, const w
 	DisplayOptionsMenu->Append( OptionsShowSelectionDistances );
 	OptionsShowSelectionDistances->Enable( false );
 
+	OptionsShowBoxExtractions = new wxMenuItem( DisplayOptionsMenu, wxID_ANY, wxString( wxT("Show Box Size Extractions") ) , wxEmptyString, wxITEM_CHECK );
+	DisplayOptionsMenu->Append( OptionsShowBoxExtractions );
+	OptionsShowBoxExtractions->Enable( false );
+
 	DisplayOptionsMenu->AppendSeparator();
 
 	OptionsShowResolution = new wxMenuItem( DisplayOptionsMenu, wxID_ANY, wxString( wxT("Show Resolution Instead of Radius") ) , wxEmptyString, wxITEM_CHECK );
@@ -174,6 +178,7 @@ DisplayFrameParent::DisplayFrameParent( wxWindow* parent, wxWindowID id, const w
 	OptionsSetPointSize->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnSize10 ), this, CoordSize10->GetId());
 	DisplayOptionsMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnSingleImageModeClick ), this, OptionsSingleImageMode->GetId());
 	DisplayOptionsMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnShowSelectionDistancesClick ), this, OptionsShowSelectionDistances->GetId());
+	DisplayOptionsMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnShowBoxSizeExtractionsClick ), this, OptionsShowBoxExtractions->GetId());
 	DisplayOptionsMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnShowResolution ), this, OptionsShowResolution->GetId());
 	DisplayHelpMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( DisplayFrameParent::OnDocumentationClick ), this, HelpAbout->GetId());
 }

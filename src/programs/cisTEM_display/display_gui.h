@@ -88,6 +88,7 @@ class DisplayFrameParent : public wxFrame
 		wxMenuItem* CoordSize10;
 		wxMenuItem* OptionsSingleImageMode;
 		wxMenuItem* OptionsShowSelectionDistances;
+		wxMenuItem* OptionsShowBoxExtractions;
 		wxMenuItem* OptionsShowResolution;
 		wxMenu* DisplayHelpMenu;
 		wxMenuItem* HelpAbout;
@@ -112,6 +113,7 @@ class DisplayFrameParent : public wxFrame
 		virtual void OnSize10( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnSingleImageModeClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnShowSelectionDistancesClick( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnShowBoxSizeExtractionsClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnShowResolution( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnDocumentationClick( wxCommandEvent& event ) { event.Skip(); }
 

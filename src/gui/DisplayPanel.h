@@ -49,6 +49,7 @@ class
     wxTextCtrl*   toolbar_location_text;
     wxStaticText* toolbar_number_of_locations_text;
     wxComboBox*   toolbar_scale_combo;
+    wxSpinCtrl*   toolbar_box_size_spin_ctrl;
 
     int panel_counter;
 
@@ -255,6 +256,7 @@ class
     void OnEraseBackground(wxEraseEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnLeftDown(wxMouseEvent& event);
+    void OnLeftUp(wxMouseEvent& event);
     void OnRightDown(wxMouseEvent& event);
     void OnRightUp(wxMouseEvent& event);
     void OnMiddleUp(wxMouseEvent& event);
@@ -359,10 +361,10 @@ class
 
     long images_in_current_view;
 
-    int images_in_x;
-    int images_in_y;
-    int current_x_size;
-    int current_y_size;
+    int images_in_x; // Number of images that can fit in width of panel
+    int images_in_y; // Number of images that can fitin height of panel
+    int current_x_size; // X-size of displayed images
+    int current_y_size; // Y-size of displayed images
 
     int  single_image_x;
     int  single_image_y;
@@ -390,6 +392,7 @@ class
     int   number_of_selections;
 
     long selected_point_size;
+    long dragging_coord_index = -1;
 
     CoordTracker* coord_tracker;
 
@@ -504,7 +507,7 @@ enum {
     Manual_Min_TextCtrl,
     Manual_Histogram_All_Check,
     Realtime_Update_Check,
-    Manual_Max_TextCtrl
+    Manual_Max_TextCtrl,
 
 };
 

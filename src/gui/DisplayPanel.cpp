@@ -2006,7 +2006,50 @@ void DisplayNotebookPanel::OnLeftDown(wxMouseEvent& event) {
                     parent_display_panel->SetTabNameUnsaved( );
                 }
                 else {
-                    coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled);
+                    constexpr int INVALID_INDEX = -1;
+                    // Let's calculate a better threshold based on the point size
+                    // This does not even require the coordinate location; it only requires the
+                    // point size, and the radius around the point that this will give.
+
+                    const double threshold        = selected_point_size / actual_scale_factor;
+                    long         closest_index    = INVALID_INDEX;
+                    double       closest_distance = DBL_MAX;
+
+                    for ( int coord_counter = 0; coord_counter < coord_tracker->number_of_coords; coord_counter++ ) {
+                        const Coord& c = coord_tracker->coords[coord_counter];
+                        if ( c.image_number != current_image )
+                            continue;
+                        double dist = std::hypot(double(current_x_pos - c.x_pos), double(current_y_pos - c.y_pos));
+                        if ( dist < closest_distance ) {
+                            closest_distance = dist;
+                            closest_index    = coord_counter;
+                        }
+                    }
+
+                    // Found the closest coordinate
+                    if ( closest_index != INVALID_INDEX ) {
+                        // Is it within the painted point? If so, check if we're removing or dragging
+                        if ( closest_distance < threshold ) {
+                            if ( event.ShiftDown( ) ) {
+                                coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled); // delete coordinate
+                                dragging_coord_index = -1;
+                            }
+                            else {
+                                dragging_coord_index = closest_index;
+                            }
+                        }
+                        // Was not within threshold, so add the coordinate
+                        else {
+                            coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled); // add coordinate
+                            dragging_coord_index = coord_tracker->number_of_coords - 1;
+                        }
+                    }
+
+                    // Didn't find a coordinate on the image, so just add it
+                    else {
+                        coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled); // add coordinate
+                        dragging_coord_index = -1;
+                    }
                     parent_display_panel->SetTabNameUnsaved( );
                 }
                 Refresh( );
@@ -2024,7 +2067,44 @@ void DisplayNotebookPanel::OnLeftDown(wxMouseEvent& event) {
 
             // We must be in coords mode
             else if ( parent_display_panel->is_from_display_program && ! image_picking_mode_enabled ) {
-                coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled);
+                constexpr int INVALID_INDEX    = -1;
+                const double  threshold        = selected_point_size / actual_scale_factor;
+                long          closest_index    = INVALID_INDEX;
+                double        closest_distance = DBL_MAX;
+
+                for ( int coord_counter = 0; coord_counter < coord_tracker->number_of_coords; coord_counter++ ) {
+                    const Coord& c = coord_tracker->coords[coord_counter];
+                    if ( c.image_number != current_image )
+                        continue;
+                    double dist = std::hypot(double(current_x_pos - c.x_pos), double(current_y_pos - c.y_pos));
+                    if ( dist < closest_distance ) {
+                        closest_distance = dist;
+                        closest_index    = coord_counter;
+                    }
+                }
+                // Found a coordinate that matches x/y/img_num
+                if ( closest_index != INVALID_INDEX ) {
+                    if ( closest_distance < threshold ) {
+                        if ( event.ShiftDown( ) ) {
+                            coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled); // delete coordinate
+                            dragging_coord_index = -1;
+                        }
+                        else {
+                            dragging_coord_index = closest_index;
+                        }
+                    }
+                    // Was not within threshold, so add the coordinate
+                    else {
+                        coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled); // delete coordinate
+                        dragging_coord_index = coord_tracker->number_of_coords - 1;
+                    }
+                }
+
+                // Didn't find coord, so add it
+                else {
+                    coord_tracker->ToggleCoord(current_image, current_x_pos, current_y_pos, filament_picking_mode_enabled); // add coordinate
+                    dragging_coord_index = -1;
+                }
                 parent_display_panel->SetTabNameUnsaved( );
             }
         }
@@ -2037,6 +2117,10 @@ void DisplayNotebookPanel::OnLeftDown(wxMouseEvent& event) {
     UpdateImageStatusInfo(x_pos, y_pos);
 
     event.Skip( );
+}
+
+void DisplayNotebookPanel::OnLeftUp(wxMouseEvent& event) {
+    dragging_coord_index = -1;
 }
 
 void DisplayNotebookPanel::OnRightUp(wxMouseEvent& event) {
@@ -2137,90 +2221,57 @@ void DisplayNotebookPanel::OnMotion(wxMouseEvent& event) {
 	 else // if the right button is down and the popup exists move it..*/
     // need to add a condition that the following is only true in filament picking mode where show_selection_distance is true and we are in coordinates mode not single image mode
 
-    // FIXME: this isn't really a good place to put this; a better place might be a specfic left-click function, or the same place that the
-    // coordinate addition is placed
-    // if ( event.m_leftDown && filament_picking_mode_enabled ) {
-    //     constexpr int INVALID_INDEX    = -1;
-    //     const double  threshold        = 20.0;
-    //     long          closest_index    = INVALID_INDEX;
-    //     double        closest_distance = 999999;
+    // User is on a plotted coordinate and left-clicking; let's drag it to where they move it.
+    if ( event.LeftIsDown( ) && dragging_coord_index != -1 ) {
+        // Which row and column are we in?
+        int relative_index = coord_tracker->coords[dragging_coord_index].image_number - current_location;
+        int tile_c         = relative_index % images_in_x;
+        int tile_r         = relative_index / images_in_x;
 
-    //     // Step 1: Find the closest coordinate
-    //     for ( long i = 0; i < coord_tracker->number_of_coords; ++i ) {
-    //         const Coord& c = coord_tracker->coords[i];
+        // Calculate the offset by accounting for the number of images in y and x that occur
+        // before reaching the image the mouse is on.
+        int offset_x = tile_c * current_x_size;
+        int offset_y = tile_r * current_y_size;
 
-    //         long relative_index = c.image_number - current_location;
+        // Finally, get the actual coordinates of the mouse
+        int mouse_x = x_pos - offset_x;
+        int mouse_y = y_pos - offset_y;
 
-    //         // Less than or greater than the number of images that fit in the panel.
-    //         if ( relative_index < 0 || relative_index >= images_in_x * images_in_y )
-    //             continue;
+        // Do not let user drag beyond the limit of the current image.
+        int max_x = ReturnImageXSize( ) * actual_scale_factor;
+        int max_y = ReturnImageYSize( ) * actual_scale_factor;
+        if ( mouse_x < 0 )
+            mouse_x = 0;
+        if ( mouse_x > max_x )
+            mouse_x = max_x;
+        if ( mouse_y < 0 )
+            mouse_y = 0;
+        if ( mouse_y > max_y )
+            mouse_y = max_y;
 
-    //         // Column and row of the image for the current panel setup
-    //         int tile_col = relative_index % images_in_x;
-    //         int tile_row = relative_index / images_in_x;
+        // Update coord as long as the mouse position is within the same image as the "selected" coord
+        coord_tracker->coords[dragging_coord_index].x_pos = mouse_x / actual_scale_factor;
+        coord_tracker->coords[dragging_coord_index].y_pos = mouse_y / actual_scale_factor;
 
-    //         // Pixel offsets for top-left corner of the image
-    //         int offset_x = tile_col * current_x_size;
-    //         int offset_y = tile_row * current_y_size;
+        if ( coord_tracker->number_of_coords > 1 ) {
+            const Coord& a = coord_tracker->coords[coord_tracker->number_of_coords - 1];
+            const Coord& b = coord_tracker->coords[coord_tracker->number_of_coords - 2];
+            if ( a.image_number == b.image_number ) {
+                selected_distance = sqrt(pow(a.x_pos - b.x_pos, 2) + pow(a.y_pos - b.y_pos, 2));
+            }
+            else {
+                selected_distance = 0.0;
+            }
+        }
+        else {
+            selected_distance = 0.0;
+        }
 
-    //         // Final screen coordinates
-    //         int coord_screen_x = offset_x + c.x_pos * actual_scale_factor;
-    //         int coord_screen_y = offset_y + c.y_pos * actual_scale_factor;
-
-    //         // Calculate distance from mouse position
-    //         double dist = std::hypot(double(x_pos - coord_screen_x),
-    //                                  double(y_pos - coord_screen_y));
-
-    //         // Closer than the currently closest distance
-    //         if ( dist < closest_distance ) {
-    //             closest_distance = dist;
-    //             closest_index    = i;
-    //         }
-    //     }
-
-    //     // Within threshold, so now account for selection/deselection
-    //     if ( closest_index != INVALID_INDEX && closest_distance < threshold ) {
-    //         long image_number = coord_tracker->coords[closest_index].image_number;
-
-    //         // Count total points in this image and find last point
-    //         int  point_count         = 0;
-    //         long last_index_in_image = INVALID_INDEX;
-
-    //         for ( long i = 0; i < coord_tracker->number_of_coords; ++i ) {
-    //             if ( coord_tracker->coords[i].image_number == image_number ) {
-    //                 point_count++;
-    //                 last_index_in_image = i;
-    //             }
-    //         }
-
-    //         // See if the point has a valid pair
-    //         long pair_index = INVALID_INDEX;
-    //         if ( closest_index % 2 == 0 ) {
-    //             if ( closest_index + 1 < coord_tracker->number_of_coords && coord_tracker->coords[closest_index + 1].image_number == image_number ) {
-    //                 pair_index = closest_index + 1;
-    //             }
-    //         }
-    //         else {
-    //             if ( closest_index - 1 >= 0 && coord_tracker->coords[closest_index - 1].image_number == image_number ) {
-    //                 pair_index = closest_index - 1;
-    //             }
-    //         }
-
-    //         if ( pair_index != INVALID_INDEX ) {
-    //             // Case A: Remove valid pair
-    //             long first  = std::max(closest_index, pair_index);
-    //             long second = std::min(closest_index, pair_index);
-    //             coord_tracker->RemoveCoord(first);
-    //             coord_tracker->RemoveCoord(second);
-    //         }
-    //         else if ( closest_index == last_index_in_image ) {
-    //             // Case B: Remove the last lone point
-    //             coord_tracker->RemoveCoord(closest_index);
-    //         }
-
-    //         ReDrawPanel( );
-    //     }
-    // }
+        // Right now, the dragging is a bit slow; it may be worth redrawing the point without calling ReDrawPanel?
+        // Or perhaps, ReDrawPanel needs to be condensed and optimized
+        UpdateImageStatusInfo(mouse_x, mouse_y);
+        ReDrawPanel( );
+    }
 
     if ( event.m_rightDown && parent_display_panel->popup_exists ) {
         // At the time of writing, when the popupwindow goes off the size of screen
@@ -4095,7 +4146,7 @@ void CoordTracker::ToggleCoord(long wanted_image, long wanted_x, long wanted_y, 
         if ( wanted_image == coords[counter].image_number ) {
             // it is on the same image..
 
-            if ( abs(wanted_x - coords[counter].x_pos) < parent_notebook->selected_point_size && abs(wanted_y - coords[counter].y_pos) < parent_notebook->selected_point_size ) {
+            if ( abs(wanted_x - coords[counter].x_pos) < parent_notebook->selected_point_size / parent_notebook->actual_scale_factor && abs(wanted_y - coords[counter].y_pos) < parent_notebook->selected_point_size / parent_notebook->actual_scale_factor ) {
                 // we are assuming that these two coords, correspond. Thus we want to remove this coord.
 
                 RemoveCoord(counter);
@@ -4137,10 +4188,41 @@ void CoordTracker::ToggleCoord(long wanted_image, long wanted_x, long wanted_y, 
     if ( number_of_coords > 1 ) {
         // now check the last two are on the same image..
 
-        if ( coords[number_of_coords - 1].image_number == coords[number_of_coords - 2].image_number ) {
-            // now calculate distance..
+        if ( parent_notebook->coords_picking_mode_enabled ) {
+            if ( coords[number_of_coords - 1].image_number == coords[number_of_coords - 2].image_number ) {
+                // now calculate distance..
+                // This is why the distance is always being reported as the last picked coords and not the current one
+                parent_notebook->selected_distance = sqrt(pow(coords[number_of_coords - 1].x_pos - coords[number_of_coords - 2].x_pos, 2) + pow(coords[number_of_coords - 1].y_pos - coords[number_of_coords - 2].y_pos, 2));
+            }
+        }
+        // filament picking mode
+        else {
+            // Figure out which coordinate we're dragging and set the selected distance to this instead
+            // This is the even/odd logic Heidy used -- loop through and find the coordinate with the matching x/y/image_number, and then find the paired coordinate if it exists
+            // If it does not, then set distance to 0
+            for ( int coord_counter = 0; coord_counter < number_of_coords; coord_counter++ ) {
 
-            parent_notebook->selected_distance = sqrt(pow(coords[number_of_coords - 1].x_pos - coords[number_of_coords - 2].x_pos, 2) + pow(coords[number_of_coords - 1].y_pos - coords[number_of_coords - 2].y_pos, 2));
+                // Found coordinate match
+                if ( coords[coord_counter].x_pos == wanted_x && coords[coord_counter].y_pos == wanted_y && coords[coord_counter].image_number == wanted_image ) {
+                    // Even; so check the next odd coordinate
+                    if ( coord_counter % 2 == 0 ) {
+                        // We have a next coord, so get the distance!
+                        if ( coord_counter < number_of_coords - 1 ) {
+                            parent_notebook->selected_distance = sqrt(pow(coords[coord_counter].x_pos - coords[coord_counter + 1].x_pos, 2) + pow(coords[coord_counter].y_pos - coords[coord_counter + 1].y_pos, 2));
+                        }
+                        // is the most recent coordinate selected, so now we assign to 0.0
+                        else {
+                            parent_notebook->selected_distance = 0.0f;
+                        }
+                    }
+                    // Odd so check the previous even coordinate
+                    else {
+                        // We MUST have a previous coordinate if the counter is odd, so we know this will be the distance
+                        parent_notebook->selected_distance = sqrt(pow(coords[coord_counter].x_pos - coords[coord_counter - 1].x_pos, 2) + pow(coords[coord_counter].y_pos - coords[coord_counter - 1].y_pos, 2));
+                    }
+                    break; // Assigned the distance, so let's exit
+                }
+            }
         }
     }
 }
@@ -4149,6 +4231,7 @@ void CoordTracker::AddCoord(long wanted_image, long wanted_x, long wanted_y) {
     long counter;
 
     number_of_coords++;
+    // TODO: Do not use an array like this; we can just use a std::vector instead, and do a simple push_back op...
     if ( number_allocated < number_of_coords ) {
         // have to allocate more space..
 
