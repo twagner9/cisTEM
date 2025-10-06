@@ -9889,7 +9889,7 @@
                                             <property name="minimum_size"></property>
                                             <property name="name">fgSizer1</property>
                                             <property name="non_flexible_grow_mode">wxFLEX_GROWMODE_SPECIFIED</property>
-                                            <property name="permission">none</property>
+                                            <property name="permission">protected</property>
                                             <property name="rows">0</property>
                                             <property name="vgap">0</property>
                                             <object class="sizeritem" expanded="0">
