@@ -20,7 +20,7 @@ AbInitio3DPanel::AbInitio3DPanel(wxWindow* parent)
     input_size.y = -1;
 
     // If blush is enabled, we'll give the user the option to use it or not.
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     wxBoxSizer*   BlushSizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* BlushLabel = new wxStaticText(ExpertPanel, wxID_ANY, "Enable Blush Denoising?");
     fgSizer1->Add(BlushLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
@@ -471,7 +471,7 @@ void AbInitio3DPanel::AbInitio3DPanel::SetDefaults( ) {
         AlwaysApplySymmetryNoButton->SetValue(true);
         ImagesPerClassSpinCtrl->SetValue(5);
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
         my_abinitio_manager.EnableBlushNoButton->SetValue(true);
         my_abinitio_manager.EnableBlushYesButton->SetValue(false);
 #endif
@@ -980,8 +980,11 @@ void AbInitioManager::BeginRefinementCycle( ) {
 
     active_auto_set_percent_used = my_parent->AutoPercentUsedYesRadio->GetValue( );
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     apply_blush_denoising = EnableBlushYesButton->GetValue( );
+    if ( ! active_should_automask ) {
+        apply_blush_denoising = true;
+    }
 #endif
 
     // need to take into account symmetry
@@ -1550,7 +1553,6 @@ void AbInitioManager::SetupMerge3dJob( ) {
         bool     save_orthogonal_views_image = false;
         wxString orthogonal_views_filename   = "";
         float    wiener_nominator;
-        float    particle_diameter = static_cast<float>(active_refinement_package->estimated_particle_size_in_angstroms);
 
         /*if (start_with_reconstruction == true) wiener_nominator = 100.0f;
 		else
@@ -1575,7 +1577,7 @@ void AbInitioManager::SetupMerge3dJob( ) {
         //wiener_nominator = 50.0f;
         //my_parent->WriteInfoText(wxString::Format("weiner nominator = %f", wiener_nominator));
 
-        my_parent->current_job_package.AddJob("ttttfffttibtifffb", output_reconstruction_1.ToUTF8( ).data( ),
+        my_parent->current_job_package.AddJob("ttttfffttibtiff", output_reconstruction_1.ToUTF8( ).data( ),
                                               output_reconstruction_2.ToUTF8( ).data( ),
                                               output_reconstruction_filtered.ToUTF8( ).data( ),
                                               output_resolution_statistics.ToUTF8( ).data( ),
@@ -1586,8 +1588,7 @@ void AbInitioManager::SetupMerge3dJob( ) {
                                               save_orthogonal_views_image,
                                               orthogonal_views_filename.ToUTF8( ).data( ),
                                               number_of_reconstruction_jobs,
-                                              wiener_nominator, alignment_res,
-                                              particle_diameter, apply_blush_denoising);
+                                              wiener_nominator, alignment_res);
     }
 }
 
@@ -1812,7 +1813,10 @@ void AbInitioManager::SetupRefinementJob( ) {
             bool defocus_bias            = false;
             int  max_threads             = 1;
 
-            my_parent->current_job_package.AddJob("ttttbttttiiffffffffffffifffffffffbbbbbbbbbbbbbbbibibb",
+            bool  use_blush_mask    = (! active_should_automask) ? true : false;
+            float particle_diameter = static_cast<float>(active_refinement_package->estimated_particle_size_in_angstroms);
+
+            my_parent->current_job_package.AddJob("ttttbttttiiffffffffffffifffffffffbbbbbbbbbbbbbbbibibbbbf",
                                                   input_particle_images.ToUTF8( ).data( ),
                                                   input_parameter_file.ToUTF8( ).data( ),
                                                   input_reconstruction.ToUTF8( ).data( ),
@@ -1865,7 +1869,10 @@ void AbInitioManager::SetupRefinementJob( ) {
                                                   local_global_refine,
                                                   class_counter,
                                                   ignore_input_parameters,
-                                                  defocus_bias);
+                                                  defocus_bias,
+                                                  apply_blush_denoising,
+                                                  use_blush_mask,
+                                                  particle_diameter);
         }
     }
 }

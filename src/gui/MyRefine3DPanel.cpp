@@ -29,7 +29,7 @@ MyRefine3DPanel::MyRefine3DPanel(wxWindow* parent)
     input_size.x += wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
     input_size.y = -1;
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     wxBoxSizer*   BlushSizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* BlushLabel = new wxStaticText(ExpertPanel, wxID_ANY, "Enable Blush Denoising?");
     fgSizer1->Add(BlushLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
@@ -565,7 +565,7 @@ void MyRefine3DPanel::SetDefaults( ) {
         LowPassMaskNoRadio->SetValue(true);
         MaskFilterResolutionText->ChangeValueFloat(20.00);
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
         my_refinement_manager.EnableBlushNoButton->SetValue(true);
         my_refinement_manager.EnableBlushYesButton->SetValue(false);
 #endif
@@ -1112,7 +1112,7 @@ void RefinementManager::BeginRefinementCycle( ) {
     active_should_mask                   = my_parent->UseMaskCheckBox->GetValue( );
     active_should_auto_mask              = my_parent->AutoMaskYesRadioButton->GetValue( );
     active_centre_mass                   = my_parent->AutoCenterYesRadioButton->GetValue( );
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     apply_blush_denoising = EnableBlushYesButton->GetValue( );
 #endif
 

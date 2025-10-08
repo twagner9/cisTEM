@@ -36,7 +36,7 @@ class AbInitioManager {
     wxArrayFloat align_sym_best_z_shifts;
     bool         apply_symmetry;
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     wxRadioButton* EnableBlushYesButton;
     wxRadioButton* EnableBlushNoButton;
 #endif

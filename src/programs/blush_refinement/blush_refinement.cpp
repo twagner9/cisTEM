@@ -8,22 +8,13 @@
 // There are type conflicts with the LibTorch libraries
 // within defines.h; they must be undefined to be able
 // to compile successfully with LibTorch.
-// #ifdef BLUSH
-#ifdef NONE
-#undef NONE
-#endif
-#ifdef FLOAT
-#undef FLOAT
-#endif
-#ifdef LONG
-#undef LONG
-#endif
-#ifdef N_
-#undef N_
-#endif
+// #include "../../../include/libtorch/cistem_torch_helper.h"
+
+#include "../../../include/libtorch/libtorch_push_macros.h"
 #include <torch/nn/functional/conv.h>
 #include <torch/script.h>
-// #include <torch/torch.h>
+#include <torch/torch.h>
+#include "../../../include/libtorch/libtorch_pop_macros.h"
 
 #include "blush_model.h" // includes torch/torch.h
 #include "blush_helpers.h"

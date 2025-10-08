@@ -319,7 +319,7 @@ if ENABLE_APPLYCTF_AM
 bin_PROGRAMS += applyctf
 endif
 
-if ENABLE_BLUSH_REFINEMENT_AM
+if ENABLE_BLUSHREFINEMENT_AM
 bin_PROGRAMS += blush_refinement
 endif
 
@@ -871,12 +871,9 @@ reconstruct3d_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 reconstruct3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 merge3d_SOURCES  = programs/merge3d/merge3d.cpp
-if ENABLE_BLUSH
-merge3d_SOURCES += programs/blush_refinement/blush_model.cpp
-endif
 
 merge3d_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-merge3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
+merge3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) 
 merge3d_LDADD    = $(BLUSH_LIBS) libcore.a  $(WX_LIBS_BASE) $(MKL_LIBS)
 merge3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
@@ -893,9 +890,12 @@ project3d_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 project3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 refine3d_SOURCES  = programs/refine3d/refine3d.cpp
+if ENABLE_BLUSH
+refine3d_SOURCES += programs/blush_refinement/blush_model.cpp
+endif
 refine3d_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-refine3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) 
-refine3d_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) 
+refine3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
+refine3d_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) 
 refine3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 remove_outlier_pixels_SOURCES  = programs/remove_outlier_pixels/remove_outlier_pixels.cpp
@@ -1152,7 +1152,7 @@ azimuthal_average_CPPFLAGS = $(WX_CPPFLAGS_BASE)
 azimuthal_average_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 azimuthal_average_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
-if ENABLE_BLUSH_REFINEMENT_AM
+if ENABLE_BLUSHREFINEMENT_AM
 blush_refinement_SOURCES  = programs/blush_refinement/blush_refinement.cpp programs/blush_refinement/blush_model.cpp
 blush_refinement_CXXFLAGS = $(WX_CPPFLAGS_BASE)
 blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
@@ -1412,12 +1412,12 @@ calculate_template_pvalue_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 # merge3d and blush_refinement, the programs that use the blush model, need access to the file
 # that contains the model weights generated in PyTorch; this will automatically
 # copy the file to avoid users having to manually copy it to the execution directory
-if ENABLE_BLUSH
-EXTRA_DIST = programs/blush_refinement/blush_weights.dat
-copy_blush_weights:
-	cp $(srcdir)/programs/blush_refinement/blush_weights.dat $(builddir)/blush_weights.dat
+# if ENABLE_BLUSH
+# EXTRA_DIST = programs/blush_refinement/blush_weights.dat
+# copy_blush_weights:
+# 	cp $(srcdir)/programs/blush_refinement/blush_weights.dat $(builddir)/blush_weights.dat
 
-all-local: copy_blush_weights
-clean-local:
-	rm $(builddir)/blush_weights.dat
-endif
+# all-local: copy_blush_weights
+# clean-local:
+# 	rm $(builddir)/blush_weights.dat
+# endif

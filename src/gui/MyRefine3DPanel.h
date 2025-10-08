@@ -82,7 +82,7 @@ class RefinementManager {
     RunProfile active_refinement_run_profile;
     RunProfile active_reconstruction_run_profile;
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     wxRadioButton* EnableBlushYesButton;
     wxRadioButton* EnableBlushNoButton;
 #endif
