@@ -1,10 +1,13 @@
 #ifndef _SRC_PROGRAMS_BLUSH_REFINEMENT_BLUSH_MODEL_H_
 #define _SRC_PROGRAMS_BLUSH_REFINEMENT_BLUSH_MODEL_H_
 
+// #include "../../../include/libtorch/cistem_torch_helper.h"
+#include "../../../include/libtorch/libtorch_push_macros.h"
 #include <torch/nn/modules/conv.h>
 #include <torch/nn/modules/normalization.h>
 #include <torch/serialize.h>
 #include <torch/torch.h>
+#include "../../../include/libtorch/libtorch_pop_macros.h"
 
 struct DoubleConv : torch::nn::Module {
     torch::nn::Sequential conv{nullptr};

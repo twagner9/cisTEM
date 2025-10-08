@@ -60,12 +60,10 @@ class BlockIterator {
     // Begin and end iteration; begin is called when starting the range-based for loop,
     // while end should be called when the loop is complete
     Iterator begin( ) {
-        // wxPrintf("\n\n\nBegin is being called...\n\n\n");
         return Iterator(*this, false);
     }
 
     Iterator end( ) {
-        // wxPrintf("\n\n\nEnd is being called...\n\n\n");
         return Iterator(*this, true);
     }
 

@@ -1,4 +1,15 @@
+// #include "cistem_config.h" // include to ensure that the macros are found; must do before core_headers.h in this particular scenario
 #include "../../core/core_headers.h"
+#ifdef cisTEM_USING_BLUSH
+
+#include "../../../include/libtorch/libtorch_push_macros.h"
+#include <torch/torch.h>
+#include "../../../include/libtorch/libtorch_pop_macros.h"
+
+#include "../blush_refinement/blush_helpers.h"
+#include "../blush_refinement/block_iterator.h"
+#include "../blush_refinement/blush_model.h"
+#endif // cisTEM_USING_BLUSH
 
 class
         Refine3DApp : public MyApp {
@@ -441,6 +452,11 @@ bool Refine3DApp::DoCalculation( ) {
     bool ignore_input_angles              = my_current_job.arguments[51].ReturnBoolArgument( ); // during global search, ignore the starting parameters (this helps reduce bias)
     bool defocus_bias                     = my_current_job.arguments[52].ReturnBoolArgument( ); // during ab-initio 3D, biases random selection of particles towards higher defocus values
 
+    // Only used when doing blush
+    bool  apply_blush_denoising = my_current_job.arguments[53].ReturnBoolArgument( );
+    bool  use_blush_mask        = my_current_job.arguments[54].ReturnBoolArgument( );
+    float particle_diameter     = my_current_job.arguments[55].ReturnFloatArgument( );
+
     if ( is_running_locally == false )
         max_threads = number_of_threads_requested_on_command_line; // OVERRIDE FOR THE GUI, AS IT HAS TO BE SET ON THE COMMAND LINE...
 
@@ -779,6 +795,243 @@ bool Refine3DApp::DoCalculation( ) {
     //	if (outer_mask_radius > input_image.physical_address_of_box_center_x * pixel_size- mask_falloff) outer_mask_radius = input_image.physical_address_of_box_center_x * pixel_size - mask_falloff;
     //	if (mask_radius_search > input_image.physical_address_of_box_center_x * pixel_size- mask_falloff) mask_radius_search = input_image.physical_address_of_box_center_x * pixel_size - mask_falloff;
     input_3d.mask_radius = outer_mask_radius;
+
+    input_3d.density_map->QuickAndDirtyWriteSlices("pre_blush_refine3d_test.mrc", 1, input_3d.density_map->logical_z_dimension, true);
+
+#ifdef cisTEM_USING_BLUSH
+    if ( apply_blush_denoising ) {
+        SendInfo("Running Blush - this can take several minutes...\n");
+
+        wxDateTime overall_start = wxDateTime::Now( );
+        wxDateTime overall_finish;
+
+        // NOTE: this is a no_grad guard, so that the Blush model does not track gradients in a computation graph for the forward pass.
+        // If it were to track gradients, it would consume a lot of memory (sometimes greater than 32 GB).
+        // These computation graphs are used for backpropagation during neural network training, which is not needed in this case as this
+        // is using the model in inference mode (i.e., for making predictions rather than training), along with loaded weights.
+        torch::NoGradGuard no_grad;
+
+        constexpr float model_voxel_size{1.5f}; // The expected voxel/pixel size of inputs to the blush model
+        constexpr int   model_block_size{64};
+        constexpr int   strides{20};
+        constexpr int   in_channels{2};
+        constexpr int   batch_size{1};
+        constexpr float mask_edge_in_angstr{10.0f}; // Edge width of the mask in Angstroms; this is the same as the Python model uses
+
+        torch::set_num_threads(1); // Set to 1 to avoid issues with parallelism in the model
+
+        std::string exe_path = wxStandardPaths::Get( ).GetExecutablePath( ).ToStdString( );
+
+        // remove the binary name from the path
+        size_t last_slash_idx = exe_path.rfind('/');
+        if ( std::string::npos != last_slash_idx ) {
+            exe_path = exe_path.substr(0, last_slash_idx + 1);
+        }
+        std::string model_filename = exe_path + "blush_weights.dat";
+
+        BlushModel model(2, 2);
+        try {
+            model.load_weights(model_filename);
+        } catch ( std::exception& e ) {
+            wxPrintf("Blush error - Error loading model weights: %s\n", e.what( ));
+            SendErrorAndCrash(wxString::Format("Blush error - Error loading model weights. It is likely that the blush_weights.dat file is not present in the directory from which merge3d is being run. %s\n", e.what( )));
+        }
+
+        model.eval( );
+        float     scale_factor;
+        const int original_box_size = input_3d.density_map->logical_x_dimension;
+        bool      must_resample     = false;
+        int       new_box_size;
+        {
+            float           wanted_sf = pixel_size / model_voxel_size;
+            constexpr float tolerance = 1e-2f;
+            new_box_size              = static_cast<int>(std::floor(input_3d.density_map->logical_x_dimension * wanted_sf + 0.5f));
+            if ( new_box_size % 2 != 0 )
+                new_box_size++;
+
+            scale_factor  = static_cast<float>(new_box_size) / static_cast<float>(input_3d.density_map->logical_x_dimension);
+            must_resample = (std::abs(scale_factor - 1.0f) > tolerance);
+
+            if ( must_resample ) {
+                input_3d.density_map->ForwardFFT( );
+                input_3d.density_map->Resize(new_box_size, new_box_size, new_box_size);
+                input_3d.density_map->BackwardFFT( );
+            }
+        }
+
+        // Must remove padding because model as implemented expects none -- it is possible to account for the padding, it's just not implemented here for simplifying integration
+        // of the blush model into cisTEM.
+        torch::Tensor                 blocks;
+        std::vector<std::vector<int>> coords;
+        torch::Tensor                 volume_tensor;
+        torch::Tensor                 local_std_dev;
+        torch::Tensor                 weights;
+        torch::Tensor                 infer_grid;
+        torch::Tensor                 count_grid;
+        torch::Tensor                 mask_tensor;
+
+        // Set up tensors to be used for model and model setup
+        try {
+            blocks        = torch::zeros({batch_size, model_block_size, model_block_size, model_block_size});
+            coords        = std::vector(batch_size, std::vector<int>(3, 0));
+            volume_tensor = torch::zeros({new_box_size, new_box_size, new_box_size}, torch::kFloat32);
+            local_std_dev = torch::zeros({new_box_size, new_box_size, new_box_size}, torch::kFloat32);
+        } catch ( std::exception& e ) {
+            wxPrintf("Blush error - Error setting up tensors: %s\n", e.what( ));
+            SendErrorAndCrash(wxString::Format("Blush error - Error setting up tensors: %s\n", e.what( )));
+        }
+
+        input_3d.density_map->RemoveFFTWPadding( );
+
+        volume_tensor = torch::from_blob(input_3d.density_map->real_values, {new_box_size, new_box_size, new_box_size}, torch::kFloat32).clone( ).contiguous( );
+        volume_tensor = volume_tensor.permute({2, 1, 0}).contiguous( ); // Change to (z, y, x) order for LibTorch
+
+        weights    = make_weight_box(model_block_size, 10);
+        infer_grid = torch::zeros({new_box_size, new_box_size, new_box_size}, torch::kFloat32);
+        count_grid = torch::zeros({new_box_size, new_box_size, new_box_size}, torch::kFloat32);
+
+        try {
+            torch::Tensor tmp_volume_clone   = volume_tensor.clone( ).contiguous( );
+            torch::Tensor tmp_local_std_dev  = get_local_std_dev(tmp_volume_clone.unsqueeze(0), 10).squeeze(0).contiguous( ).clone( );
+            torch::Tensor local_std_dev_mean = tmp_local_std_dev.mean( );
+            torch::Tensor volume_mean        = volume_tensor.mean( );
+            torch::Tensor volume_std         = volume_tensor.std( );
+
+            local_std_dev = tmp_local_std_dev / local_std_dev_mean;
+            volume_tensor = (volume_tensor - volume_mean) / (volume_std + 1e-8);
+        } catch ( std::exception& e ) {
+            wxPrintf("Blush error - Error getting localized standard deviation and normalizing the volume tensor: %s\n", e.what( ));
+            SendErrorAndCrash(wxString::Format("Blush error - Error getting localized standard deviation and normalizing the volume tensor: %s\n", e.what( )));
+            // TODO: Return or otherwise exit?
+        }
+
+        // Generate the mask
+        int   mask_edge_width = static_cast<int>(20.0f / model_voxel_size);
+        float radius          = particle_diameter * model_voxel_size + mask_edge_width / 2;
+        radius                = std::min(radius, (new_box_size - mask_edge_width) / 2.0f + 1.0f);
+        mask_tensor           = generate_radial_mask(new_box_size, radius, mask_edge_width);
+
+        if ( use_blush_mask ) {
+            volume_tensor *= mask_tensor;
+            local_std_dev *= mask_tensor;
+        }
+
+        volume_tensor = volume_tensor.unsqueeze(0);
+        local_std_dev = local_std_dev.unsqueeze(0);
+
+        // Set up done, now pass to the model
+        try {
+            BlockIterator it({new_box_size, new_box_size, new_box_size}, model_block_size, strides);
+            int           bi = 0;
+
+            for ( auto it_coords : it ) {
+                torch::Tensor volume_block  = torch::zeros({1, model_block_size, model_block_size, model_block_size}, torch::kFloat32);
+                torch::Tensor std_dev_block = torch::zeros({1, model_block_size, model_block_size, model_block_size}, torch::kFloat32);
+
+                int x = std::get<0>(it_coords);
+                int y = std::get<1>(it_coords);
+                int z = std::get<2>(it_coords);
+
+                // Here -1 is just a method for determining if iterations have finished; could probably improve clarity,
+                // but for now this note is enough.
+
+                // FIXME: Will need to consider how to handle this case -- whether a block is passed to the model depends on the mask mean, so there needs to be a replacement.
+                // It's not necessarily safe to use a non-circular mask because a tight mask may exclude density that the model needs to determine whether a
+                // block should be passed; for some portions, it may just fail to pass anything to the model, resulting in little to no denoising.
+                // 1. Still generate the mask, but don't apply it to the volume/std_dev tensors.
+                // 	a. Bit of a waste of memory, but would be fine for this application.
+                // 	b. Retains the same runtime despite the volume being masked differently.
+                // 2. Pass the entire volume to the model (i.e. all blocks), but apply weighting to the output based on the automask or provided mask.
+                // 	a. This will take longer to execute.
+                // 	b. Might be interesting to see how this will actually effect the blush output.
+                // 3. Devise a different set of criteria to determine whether a block should be passed based on the currently applied mask.
+
+                // I think for now, for letting this be done simply, we'll just still generate the mask without applying:
+                if ( x > -1 ) {
+                    // torch::Tensor current_slice = mask_tensor.slice(0, z, z + model_block_size, 1).slice(1, y, y + model_block_size, 1).slice(2, x, x + model_block_size, 1);
+                    torch::Tensor current_slice = volume_tensor.slice(1, z, z + model_block_size, 1).slice(2, y, y + model_block_size, 1).slice(3, x, x + model_block_size, 1).clone( );
+                    float         mask_mean     = current_slice.mean( ).item<float>( );
+
+                    // Skip this block if the mask mean is quite low as there must not be much density here.
+                    int mean_threshold;
+                    if ( use_blush_mask )
+                        mean_threshold = 0.3f;
+                    else
+                        mean_threshold = 0.2f;
+
+                    // Using blush mask and the mean is too small
+                    if ( use_blush_mask && mask_mean < 0.3f ) {
+                        continue;
+                    }
+
+                    // Not using blush mask, so use smaller threshold (automasking is tighter, so we don't
+                    // want to skip blocks that have relevant data)
+                    else if ( mask_mean < 0.2f ) {
+                        continue;
+                    }
+
+                    volume_block  = volume_tensor.slice(1, z, z + model_block_size, 1).slice(2, y, y + model_block_size, 1).slice(3, x, x + model_block_size, 1).clone( );
+                    std_dev_block = local_std_dev.slice(1, z, z + model_block_size, 1).slice(2, y, y + model_block_size, 1).slice(3, x, x + model_block_size, 1).clone( );
+                    bi++;
+                }
+
+                if ( bi == batch_size ) {
+                    auto          initial_output = model.forward(volume_block, std_dev_block);
+                    torch::Tensor vol_output     = std::get<0>(initial_output);
+
+                    for ( int i = 0; i < batch_size; i++ ) {
+                        torch::Tensor infer_grid_slice = infer_grid.slice(0, z, z + model_block_size, 1).slice(1, y, y + model_block_size, 1).slice(2, x, x + model_block_size, 1);
+                        auto          update           = vol_output[i] * weights;
+                        infer_grid_slice += update;
+
+                        torch::Tensor count_grid_slice = count_grid.slice(0, z, z + model_block_size, 1).slice(1, y, y + model_block_size, 1).slice(2, x, x + model_block_size, 1);
+                        count_grid_slice += weights;
+                    }
+                    bi = 0;
+                }
+            }
+            infer_grid = torch::where(count_grid > 0, infer_grid / count_grid, infer_grid);
+            infer_grid = torch::where(count_grid < 1e-1f, 0, infer_grid); // Set values where count_grid is less than 0.1 to 0
+            if ( use_blush_mask ) {
+                infer_grid *= mask_tensor;
+            }
+
+            infer_grid = infer_grid * (volume_tensor.std( ) + 1e-8) + volume_tensor.mean( ); // Normalize the inference grid
+        } catch ( std::exception& e ) {
+            wxPrintf("Blush error - Error running the blush model: %s\n", e.what( ));
+            SendErrorAndCrash("Blush error - Error running the blush model: " + wxString::FromUTF8(e.what( )));
+        }
+
+        // Finally, put the result back into the input_3d.density_map, and handle resampling if needed
+        if ( use_blush_mask ) {
+            infer_grid *= mask_tensor;
+        }
+
+        infer_grid = infer_grid.permute({2, 1, 0}).contiguous( ); // Change back to (x, y, z) order for MRC output
+        std::memcpy(input_3d.density_map->real_values, infer_grid.data_ptr<float>( ), sizeof(float) * std::pow(new_box_size, 3));
+        input_3d.density_map->AddFFTWPadding( );
+        if ( must_resample ) {
+            input_3d.density_map->ForwardFFT( );
+            input_3d.density_map->Resize(original_box_size, original_box_size, original_box_size);
+            input_3d.density_map->BackwardFFT( );
+        }
+
+        // Write out again to save the blush changes
+        // MRCFile output_file;
+        // output_file.OpenFile(input_file.filename.ToStdString( ), true);
+        // input_3d.density_map->WriteSlices(&output_file, 1, input_3d.density_map->logical_z_dimension);
+        input_3d.density_map->QuickAndDirtyWriteSlices("blush_refine3d_test.mrc", 1, input_3d.density_map->logical_z_dimension, true);
+        // output_file.SetPixelSize(pixel_size);
+        // EmpiricalDistribution<double> density_distribution;
+        // input_3d.density_map->UpdateDistributionOfRealValues(&density_distribution);
+        // output_file.SetDensityStatistics(density_distribution.GetMinimum( ), density_distribution.GetMaximum( ), density_distribution.GetSampleMean( ), sqrtf(density_distribution.GetSampleVariance( )));
+        // output_file.CloseFile( );
+
+        overall_finish      = wxDateTime::Now( );
+        wxTimeSpan duration = overall_finish.Subtract(overall_start);
+        wxPrintf("Total blush runtime:         %s\n", duration.Format( ));
+    }
+#endif
 
     if ( global_search ) {
         if ( best_parameters_to_keep == 0 ) {

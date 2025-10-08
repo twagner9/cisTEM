@@ -74,7 +74,7 @@ class AutoRefinementManager {
     bool reference_3d_contains_all_particles;
     bool this_is_the_final_round;
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     wxRadioButton* EnableBlushYesButton;
     wxRadioButton* EnableBlushNoButton;
 #endif

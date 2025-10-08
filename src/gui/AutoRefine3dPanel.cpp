@@ -32,7 +32,7 @@ AutoRefine3DPanel::AutoRefine3DPanel(wxWindow* parent)
     input_size.y = -1;
 
     // If blush is enabled, give the user the option to use it or not.
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     wxBoxSizer*   BlushSizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* BlushLabel = new wxStaticText(ExpertPanel, wxID_ANY, "Enable Blush Denoising?");
     fgSizer1->Add(BlushLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
@@ -386,7 +386,7 @@ void AutoRefine3DPanel::SetDefaults( ) {
         LowPassMaskNoRadio->SetValue(true);
         MaskFilterResolutionText->ChangeValueFloat(20.00);
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
         my_refinement_manager.EnableBlushNoButton->SetValue(true);
         my_refinement_manager.EnableBlushYesButton->SetValue(false);
 #endif
@@ -812,7 +812,7 @@ void AutoRefinementManager::BeginRefinementCycle( ) {
     active_mask_edge                   = my_parent->MaskEdgeTextCtrl->ReturnValue( );
     active_mask_weight                 = my_parent->MaskWeightTextCtrl->ReturnValue( );
 
-#ifdef BLUSH
+#ifdef cisTEM_USING_BLUSH
     apply_blush_denoising = EnableBlushYesButton->GetValue( );
 #endif
 
@@ -959,6 +959,8 @@ void AutoRefinementManager::BeginRefinementCycle( ) {
 
     //my_parent->Thaw();
 
+    // If either of these is true, and we're shifting the blush logic to refine3d, we should
+    // not use the masking logic used for blush.
     if ( active_should_auto_mask == true || active_should_mask == true ) {
         DoMasking( );
     }
@@ -1073,10 +1075,9 @@ void AutoRefinementManager::SetupMerge3dJob( ) {
         wxString orthogonal_views_filename   = main_frame->current_project.volume_asset_directory.GetFullPath( ) + wxString::Format("/OrthViews/volume_%li_%i.mrc", output_refinement->refinement_id, class_counter + 1);
         float    weiner_nominator            = 1.0f;
 
-        float alignment_res     = class_high_res_limits[class_counter];
-        float particle_diameter = static_cast<float>(active_refinement_package->estimated_particle_size_in_angstroms);
+        float alignment_res = class_high_res_limits[class_counter];
 
-        my_parent->current_job_package.AddJob("ttttfffttibtifffb", output_reconstruction_1.ToUTF8( ).data( ),
+        my_parent->current_job_package.AddJob("ttttfffttibtiff", output_reconstruction_1.ToUTF8( ).data( ),
                                               output_reconstruction_2.ToUTF8( ).data( ),
                                               output_reconstruction_filtered.ToUTF8( ).data( ),
                                               output_resolution_statistics.ToUTF8( ).data( ),
@@ -1086,8 +1087,7 @@ void AutoRefinementManager::SetupMerge3dJob( ) {
                                               class_counter + 1,
                                               save_orthogonal_views_image,
                                               orthogonal_views_filename.ToUTF8( ).data( ),
-                                              number_of_reconstruction_jobs, weiner_nominator, alignment_res,
-                                              particle_diameter, apply_blush_denoising);
+                                              number_of_reconstruction_jobs, weiner_nominator, alignment_res);
     }
 }
 
@@ -1529,7 +1529,10 @@ void AutoRefinementManager::SetupRefinementJob( ) {
 
             int max_threads = 1;
 
-            my_parent->current_job_package.AddJob("ttttbttttiiffffffffffffifffffffffbbbbbbbbbbbbbbbibibb",
+            bool  use_blush_mask    = (! active_should_auto_mask && ! active_should_mask) ? true : false;
+            float particle_diameter = static_cast<float>(active_refinement_package->estimated_particle_size_in_angstroms);
+
+            my_parent->current_job_package.AddJob("ttttbttttiiffffffffffffifffffffffbbbbbbbbbbbbbbbibibbbbf",
                                                   input_particle_images.ToUTF8( ).data( ),
                                                   input_parameter_file.ToUTF8( ).data( ),
                                                   input_reconstruction.ToUTF8( ).data( ),
@@ -1582,7 +1585,10 @@ void AutoRefinementManager::SetupRefinementJob( ) {
                                                   global_local_refinement,
                                                   class_counter,
                                                   ignore_input_parameters,
-                                                  defocus_bias);
+                                                  defocus_bias,
+                                                  apply_blush_denoising,
+                                                  use_blush_mask,
+                                                  particle_diameter);
         }
     }
 
