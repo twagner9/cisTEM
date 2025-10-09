@@ -1,5 +1,7 @@
 #include "core_headers.h"
 
+using c_ft = cistem::fundamental_type::Enum;
+
 //TODO : Currently, any strings with spaces will cause the star file (but not binary) reader to break - needs to be fixed.
 
 // ADDING A NEW COLUMN
@@ -1527,37 +1529,37 @@ bool cisTEMStarFileReader::ReadBinaryFile(wxString wanted_filename, ArrayOfcisTE
                 if ( current_line == 0 )
                     wxPrintf("Unknown Column Type in Binary File (%li) - it will be ignored.\n");
 
-                if ( column_data_types[current_column] == INTEGER ) {
+                if ( column_data_types[current_column] == c_ft::integer_t ) {
                     int buffer_int;
                     if ( SafelyReadFromBinaryBufferIntoInteger(buffer_int) == false )
                         return false;
                 }
-                else if ( column_data_types[current_column] == INTEGER_UNSIGNED ) {
+                else if ( column_data_types[current_column] == c_ft::integer_unsigned_t ) {
                     unsigned int buffer_int;
                     if ( SafelyReadFromBinaryBufferIntoUnsignedInteger(buffer_int) == false )
                         return false;
                 }
-                else if ( column_data_types[current_column] == FLOAT ) {
+                else if ( column_data_types[current_column] == c_ft::float_t ) {
                     float buffer_float;
                     if ( SafelyReadFromBinaryBufferIntoFloat(buffer_float) == false )
                         return false;
                 }
-                else if ( column_data_types[current_column] == LONG ) {
+                else if ( column_data_types[current_column] == c_ft::long_t ) {
                     long buffer_long;
                     if ( SafelyReadFromBinaryBufferIntoLong(buffer_long) == false )
                         return false;
                 }
-                else if ( column_data_types[current_column] == DOUBLE ) {
+                else if ( column_data_types[current_column] == c_ft::double_t ) {
                     double buffer_double;
                     if ( SafelyReadFromBinaryBufferIntoDouble(buffer_double) == false )
                         return false;
                 }
-                else if ( column_data_types[current_column] == CHAR ) {
+                else if ( column_data_types[current_column] == c_ft::char_t ) {
                     char buffer_char;
                     if ( SafelyReadFromBinaryBufferIntoChar(buffer_char) == false )
                         return false;
                 }
-                else if ( column_data_types[current_column] == VARIABLE_LENGTH ) {
+                else if ( column_data_types[current_column] == c_ft::variable_length_t ) {
                     wxString buffer_string;
                     if ( SafelyReadFromBinaryBufferIntowxString(buffer_string) == false )
                         return false;

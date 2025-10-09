@@ -1,5 +1,7 @@
 #include "core_headers.h"
 
+using c_ft = cistem::fundamental_type::Enum;
+
 bool JobPackage::SendJobPackage(wxSocketBase* socket) // package the whole object into a single char stream which can be decoded at the other end..
 {
     SETUP_SOCKET_CODES
@@ -237,10 +239,10 @@ bool JobPackage::SendJobPackage(wxSocketBase* socket) // package the whole objec
         for ( argument_counter = 0; argument_counter < jobs[job_counter].number_of_arguments; argument_counter++ ) {
             // ok, what is this argument..
 
-            if ( jobs[job_counter].arguments[argument_counter].type_of_argument == INTEGER ) {
+            if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::integer_t ) {
                 // set the descriptor byte
 
-                transfer_buffer[byte_counter] = INTEGER;
+                transfer_buffer[byte_counter] = c_ft::integer_t;
                 byte_counter++;
 
                 // set the value of the integer..
@@ -257,10 +259,10 @@ bool JobPackage::SendJobPackage(wxSocketBase* socket) // package the whole objec
                 transfer_buffer[byte_counter] = char_pointer[3];
                 byte_counter++;
             }
-            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == FLOAT ) {
+            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::float_t ) {
                 // set the descriptor byte
 
-                transfer_buffer[byte_counter] = FLOAT;
+                transfer_buffer[byte_counter] = c_ft::float_t;
                 byte_counter++;
 
                 // set the value of the float..
@@ -277,10 +279,10 @@ bool JobPackage::SendJobPackage(wxSocketBase* socket) // package the whole objec
                 transfer_buffer[byte_counter] = char_pointer[3];
                 byte_counter++;
             }
-            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == BOOL ) {
+            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::bool_t ) {
                 // set the descriptor byte
 
-                transfer_buffer[byte_counter] = BOOL;
+                transfer_buffer[byte_counter] = c_ft::bool_t;
                 byte_counter++;
 
                 // set the value of the bool..
@@ -288,10 +290,10 @@ bool JobPackage::SendJobPackage(wxSocketBase* socket) // package the whole objec
                 transfer_buffer[byte_counter] = (unsigned char)jobs[job_counter].arguments[argument_counter].ReturnBoolArgument( );
                 byte_counter++;
             }
-            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == TEXT ) {
+            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::text_t ) {
                 // set the descriptor byte
 
-                transfer_buffer[byte_counter] = TEXT;
+                transfer_buffer[byte_counter] = c_ft::text_t;
                 byte_counter++;
 
                 // add the length of the string..
@@ -627,7 +629,7 @@ bool JobPackage::ReceiveJobPackage(wxSocketBase* socket) {
 
             byte_counter++;
 
-            if ( jobs[job_counter].arguments[argument_counter].type_of_argument == INTEGER ) {
+            if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::integer_t ) {
                 // read the value of the integer..
 
                 char_pointer = (unsigned char*)&temp_int;
@@ -643,7 +645,7 @@ bool JobPackage::ReceiveJobPackage(wxSocketBase* socket) {
 
                 jobs[job_counter].arguments[argument_counter].SetIntArgument(temp_int);
             }
-            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == FLOAT ) {
+            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::float_t ) {
                 // read the value of the float..
 
                 char_pointer = (unsigned char*)&temp_float;
@@ -659,11 +661,11 @@ bool JobPackage::ReceiveJobPackage(wxSocketBase* socket) {
 
                 jobs[job_counter].arguments[argument_counter].SetFloatArgument(temp_float);
             }
-            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == BOOL ) {
+            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::bool_t ) {
                 jobs[job_counter].arguments[argument_counter].SetBoolArgument(bool(transfer_buffer[byte_counter]));
                 byte_counter++;
             }
-            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == TEXT ) {
+            else if ( jobs[job_counter].arguments[argument_counter].type_of_argument == c_ft::text_t ) {
                 // read length of command string
 
                 char_pointer = (unsigned char*)&length_of_string;
@@ -910,10 +912,10 @@ bool RunJob::SendJob(wxSocketBase* socket) {
     for ( argument_counter = 0; argument_counter < number_of_arguments; argument_counter++ ) {
         // ok, what is this argument..
 
-        if ( arguments[argument_counter].type_of_argument == INTEGER ) {
+        if ( arguments[argument_counter].type_of_argument == c_ft::integer_t ) {
             // set the descriptor byte
 
-            transfer_buffer[byte_counter] = INTEGER;
+            transfer_buffer[byte_counter] = c_ft::integer_t;
             byte_counter++;
 
             // set the value of the integer..
@@ -930,10 +932,10 @@ bool RunJob::SendJob(wxSocketBase* socket) {
             transfer_buffer[byte_counter] = char_pointer[3];
             byte_counter++;
         }
-        else if ( arguments[argument_counter].type_of_argument == FLOAT ) {
+        else if ( arguments[argument_counter].type_of_argument == c_ft::float_t ) {
             // set the descriptor byte
 
-            transfer_buffer[byte_counter] = FLOAT;
+            transfer_buffer[byte_counter] = c_ft::float_t;
             byte_counter++;
 
             // set the value of the float..
@@ -950,10 +952,10 @@ bool RunJob::SendJob(wxSocketBase* socket) {
             transfer_buffer[byte_counter] = char_pointer[3];
             byte_counter++;
         }
-        else if ( arguments[argument_counter].type_of_argument == BOOL ) {
+        else if ( arguments[argument_counter].type_of_argument == c_ft::bool_t ) {
             // set the descriptor byte
 
-            transfer_buffer[byte_counter] = BOOL;
+            transfer_buffer[byte_counter] = c_ft::bool_t;
             byte_counter++;
 
             // set the value of the bool..
@@ -961,10 +963,10 @@ bool RunJob::SendJob(wxSocketBase* socket) {
             transfer_buffer[byte_counter] = (unsigned char)arguments[argument_counter].ReturnBoolArgument( );
             byte_counter++;
         }
-        else if ( arguments[argument_counter].type_of_argument == TEXT ) {
+        else if ( arguments[argument_counter].type_of_argument == c_ft::text_t ) {
             // set the descriptor byte
 
-            transfer_buffer[byte_counter] = TEXT;
+            transfer_buffer[byte_counter] = c_ft::text_t;
             byte_counter++;
 
             // add the length of the string..
@@ -1121,7 +1123,7 @@ bool RunJob::RecieveJob(wxSocketBase* socket) {
 
         byte_counter++;
 
-        if ( arguments[argument_counter].type_of_argument == INTEGER ) {
+        if ( arguments[argument_counter].type_of_argument == c_ft::integer_t ) {
             // read the value of the integer..
             char_pointer = (unsigned char*)&temp_int;
 
@@ -1136,7 +1138,7 @@ bool RunJob::RecieveJob(wxSocketBase* socket) {
 
             arguments[argument_counter].SetIntArgument(temp_int);
         }
-        else if ( arguments[argument_counter].type_of_argument == FLOAT ) {
+        else if ( arguments[argument_counter].type_of_argument == c_ft::float_t ) {
             // read the value of the float..
             char_pointer = (unsigned char*)&temp_float;
 
@@ -1151,12 +1153,12 @@ bool RunJob::RecieveJob(wxSocketBase* socket) {
 
             arguments[argument_counter].SetFloatArgument(temp_float);
         }
-        else if ( arguments[argument_counter].type_of_argument == BOOL ) {
+        else if ( arguments[argument_counter].type_of_argument == c_ft::bool_t ) {
 
             arguments[argument_counter].SetBoolArgument(bool(transfer_buffer[byte_counter]));
             byte_counter++;
         }
-        else if ( arguments[argument_counter].type_of_argument == TEXT ) {
+        else if ( arguments[argument_counter].type_of_argument == c_ft::text_t ) {
             // read length of command string
 
             char_pointer = (unsigned char*)&length_of_string;
@@ -1273,16 +1275,16 @@ wxString RunJob::PrintAllArgumentsTowxString( ) {
     wxString string_to_return = "\n";
 
     for ( int counter = 0; counter < number_of_arguments; counter++ ) {
-        if ( arguments[counter].type_of_argument == TEXT ) {
+        if ( arguments[counter].type_of_argument == c_ft::text_t ) {
             string_to_return += wxString::Format("Argument %3i is a string   : %s\n", counter, arguments[counter].ReturnStringArgument( ));
         }
-        else if ( arguments[counter].type_of_argument == INTEGER ) {
+        else if ( arguments[counter].type_of_argument == c_ft::integer_t ) {
             string_to_return += wxString::Format("Argument %3i is an integer : %i\n", counter, arguments[counter].ReturnIntegerArgument( ));
         }
-        else if ( arguments[counter].type_of_argument == FLOAT ) {
+        else if ( arguments[counter].type_of_argument == c_ft::float_t ) {
             string_to_return += wxString::Format("Argument %3i is a float    : %f\n", counter, arguments[counter].ReturnFloatArgument( ));
         }
-        else if ( arguments[counter].type_of_argument == BOOL ) {
+        else if ( arguments[counter].type_of_argument == c_ft::bool_t ) {
             string_to_return += wxString::Format("Argument %3i is a bool     : ", counter);
 
             if ( arguments[counter].ReturnBoolArgument( ) == true )
@@ -1325,16 +1327,16 @@ RunJob& RunJob::operator=(const RunJob* other_job) {
         has_been_run = other_job->has_been_run;
 
         for ( int counter = 0; counter < number_of_arguments; counter++ ) {
-            if ( other_job->arguments[counter].type_of_argument == TEXT ) {
+            if ( other_job->arguments[counter].type_of_argument == c_ft::text_t ) {
                 arguments[counter].SetStringArgument(other_job->arguments[counter].ReturnStringArgument( ).c_str( ));
             }
-            else if ( other_job->arguments[counter].type_of_argument == INTEGER ) {
+            else if ( other_job->arguments[counter].type_of_argument == c_ft::integer_t ) {
                 arguments[counter].SetIntArgument(other_job->arguments[counter].ReturnIntegerArgument( ));
             }
-            else if ( other_job->arguments[counter].type_of_argument == FLOAT ) {
+            else if ( other_job->arguments[counter].type_of_argument == c_ft::float_t ) {
                 arguments[counter].SetFloatArgument(other_job->arguments[counter].ReturnFloatArgument( ));
             }
-            else if ( other_job->arguments[counter].type_of_argument == BOOL ) {
+            else if ( other_job->arguments[counter].type_of_argument == c_ft::bool_t ) {
                 arguments[counter].SetBoolArgument(other_job->arguments[counter].ReturnBoolArgument( ));
             }
         }
@@ -1350,7 +1352,7 @@ RunJob& RunJob::operator=(const RunJob& other_job) {
 
 RunArgument::RunArgument( ) {
     is_allocated     = false;
-    type_of_argument = NONE;
+    type_of_argument = c_ft::none_t;
     string_argument  = NULL;
     integer_argument = NULL;
     float_argument   = NULL;
@@ -1363,24 +1365,24 @@ RunArgument::~RunArgument( ) {
 }
 
 void RunArgument::Deallocate( ) {
-    if ( type_of_argument == TEXT )
+    if ( type_of_argument == c_ft::text_t )
         delete string_argument;
-    else if ( type_of_argument == INTEGER )
+    else if ( type_of_argument == c_ft::integer_t )
         delete integer_argument;
-    else if ( type_of_argument == FLOAT )
+    else if ( type_of_argument == c_ft::float_t )
         delete float_argument;
-    else if ( type_of_argument == BOOL )
+    else if ( type_of_argument == c_ft::bool_t )
         delete bool_argument;
 
     is_allocated = false;
 }
 
 long RunArgument::ReturnEncodedByteTransferSize( ) {
-    MyDebugAssertTrue(type_of_argument != NONE, "Can't calculate size of a nothing argument!!");
+    MyDebugAssertTrue(type_of_argument != c_ft::none_t, "Can't calculate size of a nothing argument!!");
 
-    if ( type_of_argument == TEXT )
+    if ( type_of_argument == c_ft::text_t )
         return string_argument->length( ) + 4 + 1; // descriptor byte + length of string (4 bytes) + 1 byte per character
-    else if ( type_of_argument == BOOL )
+    else if ( type_of_argument == c_ft::bool_t )
         return 2; // descriptor bytes + bool bytes
     else
         return 5; // descriptor byte + 4 data bytes
@@ -1390,7 +1392,7 @@ void RunArgument::SetStringArgument(const char* wanted_text) {
     if ( is_allocated == true )
         Deallocate( );
 
-    type_of_argument   = TEXT;
+    type_of_argument   = c_ft::text_t;
     string_argument    = new std::string;
     string_argument[0] = wanted_text;
     is_allocated       = true;
@@ -1400,7 +1402,7 @@ void RunArgument::SetIntArgument(int wanted_argument) {
     if ( is_allocated == true )
         Deallocate( );
 
-    type_of_argument    = INTEGER;
+    type_of_argument    = c_ft::integer_t;
     integer_argument    = new int;
     integer_argument[0] = wanted_argument;
     is_allocated        = true;
@@ -1410,7 +1412,7 @@ void RunArgument::SetFloatArgument(float wanted_argument) {
     if ( is_allocated == true )
         Deallocate( );
 
-    type_of_argument  = FLOAT;
+    type_of_argument  = c_ft::float_t;
     float_argument    = new float;
     float_argument[0] = wanted_argument;
     is_allocated      = true;
@@ -1420,7 +1422,7 @@ void RunArgument::SetBoolArgument(bool wanted_argument) {
     if ( is_allocated == true )
         Deallocate( );
 
-    type_of_argument = BOOL;
+    type_of_argument = c_ft::bool_t;
     bool_argument    = new bool;
     bool_argument[0] = wanted_argument;
     is_allocated     = true;
