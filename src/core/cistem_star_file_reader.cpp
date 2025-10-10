@@ -1089,14 +1089,14 @@ bool cisTEMStarFileReader::ReadBinaryFile(wxString wanted_filename, ArrayOfcisTE
     // get the order of columns..
 
     long column_order_buffer[number_of_columns]; // so we can keep the order for reading later..
-    char column_data_types[number_of_columns]; // in case we don't recognize a column - see cistem_paramters for more details
+    int  column_data_types[number_of_columns]; // in case we don't recognize a column - see cistem_paramters for more details // sizeof(c_ft::Enum) == sizeof(int)
 
     ResetColumnPositions( );
 
     for ( current_column = 0; current_column < number_of_columns; current_column++ ) {
         if ( SafelyReadFromBinaryBufferIntoLong(column_order_buffer[current_column]) == false )
             return false;
-        if ( SafelyReadFromBinaryBufferIntoChar(column_data_types[current_column]) == false )
+        if ( SafelyReadFromBinaryBufferIntoInteger(column_data_types[current_column]) == false )
             return false;
 
         if ( column_order_buffer[current_column] == POSITION_IN_STACK ) {

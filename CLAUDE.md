@@ -148,3 +148,4 @@ The project is designed for development with Visual Studio Code using Docker con
 - VS Code settings linked via `.vscode` symlink to `.vscode_shared/CistemDev`
 - Container environment managed through `regenerate_containers.sh`
 - Build tasks pre-configured for different compiler and configuration combinations
+- When trying to show the user a diff for a file that might have moved, try something like "git difftool HEAD~2 -- src/core/socket_communicator.cpp src/core/socket_communication_utils/socket_communicator.cpp"
