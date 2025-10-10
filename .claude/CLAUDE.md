@@ -66,6 +66,24 @@ Agents are specialized AI assistants designed for specific development workflows
 
 **Example**: "I've implemented a new binary protocol parser. We need comprehensive tests."
 
+#### **gpu-test-debugger** (`agents/gpu-test-debugger.md`)
+**Purpose**: Debug functional and console test failures with systematic GPU-aware investigation.
+
+**When to use**:
+- When `samples_functional_testing` or `console_test` fails
+- For GPU memory corruption or race condition symptoms
+- When tests produce incorrect numerical results
+- For non-deterministic behavior in scientific computing
+
+**What it does**:
+- Establishes reproducible baselines with reference binaries
+- Uses compute-sanitizer, cuda-gdb, and cisTEM debugging macros
+- Systematically tests hypotheses (memory corruption, race conditions, numerical issues)
+- Provides root cause analysis with verification steps
+- Leverages `/build-cistem` to discover build directories automatically
+
+**Example**: "The refine3d functional test is failing intermittently. Can you help debug it?"
+
 ### Security
 
 #### **red-team-security-tester** (`agents/red-team-security-tester.md`)
