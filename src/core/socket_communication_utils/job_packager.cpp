@@ -686,7 +686,7 @@ bool JobPackage::ReceiveJobPackage(wxSocketBase* socket) {
         for ( argument_counter = 0; argument_counter < jobs[job_counter].number_of_arguments; argument_counter++ ) {
             // ok, what is this argument..
 
-            jobs[job_counter].arguments[argument_counter].type_of_argument = int(transfer_buffer[byte_counter]);
+            jobs[job_counter].arguments[argument_counter].type_of_argument = static_cast<cistem::fundamental_type::Enum>(int(transfer_buffer[byte_counter]));
 
             byte_counter++;
 
@@ -1223,7 +1223,7 @@ bool RunJob::RecieveJob(wxSocketBase* socket) {
     for ( argument_counter = 0; argument_counter < number_of_arguments; argument_counter++ ) {
         // ok, what is this argument..
 
-        arguments[argument_counter].type_of_argument = int(transfer_buffer[byte_counter]);
+        arguments[argument_counter].type_of_argument = static_cast<cistem::fundamental_type::Enum>(int(transfer_buffer[byte_counter]));
 
         byte_counter++;
 

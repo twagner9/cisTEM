@@ -17,8 +17,8 @@
 class RunArgument {
 
   public:
-    bool is_allocated;
-    int  type_of_argument;
+    bool                           is_allocated;
+    cistem::fundamental_type::Enum type_of_argument;
 
     std::string* string_argument;
     int*         integer_argument;

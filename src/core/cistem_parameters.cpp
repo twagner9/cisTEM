@@ -792,8 +792,8 @@ void cisTEMParameters::WriteTocisTEMBinaryFile(wxString wanted_filename, int fir
     // cistem::fundamental_type::double_t
     // cistem::fundamental_type::variable_length_t - variable will be an integer first, which tells us how many bytes the next sections is.
 
-    long bitmask_identifier;
-    char data_type;
+    long                           bitmask_identifier;
+    cistem::fundamental_type::Enum data_type;
 
     if ( first_image_to_write == -1 )
         first_image_to_write = 1;
