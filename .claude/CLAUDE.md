@@ -84,6 +84,27 @@ Agents are specialized AI assistants designed for specific development workflows
 
 **Example**: "The refine3d functional test is failing intermittently. Can you help debug it?"
 
+### Version Control
+
+#### **git-merge-expert** (`agents/git-merge-expert.md`)
+**Purpose**: Systematic merge conflict resolution with phased categorization and VS Code integration.
+
+**When to use**:
+- When encountering merge conflicts during git merge operations
+- For complex merges affecting multiple file categories
+- When conflicts span structural, build system, implementation, and documentation changes
+
+**What it does**:
+- Categorizes conflicts into phases (structural, build, implementation, documentation)
+- Integrates with VS Code merge editor for visual conflict resolution
+- Provides clear recommendations for each conflict (Accept Ours/Theirs/Both/Manual)
+- Interactive prompt pattern after opening each conflict file
+- Stages files immediately after resolution
+- Verifies build after merge completion
+- Cleans up merge backup files
+
+**Example**: "I'm merging the feature branch and have 9 conflicted files across different categories."
+
 ### Security
 
 #### **red-team-security-tester** (`agents/red-team-security-tester.md`)
