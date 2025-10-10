@@ -122,6 +122,19 @@ Refer to `.github/workflows/` for CI test configurations.
 - **Descriptive Messages:** Write clear, concise commit messages that explain what was changed and why
 - **Test Before Commit:** Verify that changes work as expected before committing
 
+## Pull Request Best Practices
+
+**IMPORTANT: This repository has separate `origin` and `upstream` remotes. Pull requests must be created against `upstream`, not `origin`.**
+
+- **PR Template:** All pull requests must follow the template at `.github/pull_request_template.md`
+- **Interactive Drafting Process:** See `.github/workflows/CLAUDE.md` for detailed instructions on the interactive PR creation workflow
+- **Target Repository:** PRs should target `upstream/master`, not `origin/master`
+- **Pre-PR Checklist:**
+  - Verify all commits compile
+  - Run relevant tests (console tests, functional tests, manual testing)
+  - Remove all `// revert` marked debugging code
+  - Ensure PR description explains *why* changes were made, not just *what* changed
+
 
 ## Modern C++ Best Practices
 
