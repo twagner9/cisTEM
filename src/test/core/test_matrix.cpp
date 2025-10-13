@@ -592,15 +592,15 @@ TEST_CASE("RotationMatrix Euler rotation setup", "[RotationMatrix][core][rotatio
         REQUIRE(RelativeErrorIsLessThanEpsilon(z, -1.0f));
     }
 
-    SECTION("180 degree rotation around X") {
+    SECTION("180 degree rotation around Z") {
         RotationMatrix rm;
-        rm.SetToEulerRotation(0.0f, 180.0f, 0.0f);
+        rm.SetToEulerRotation(180.0f, 0.0f, 0.0f);
 
         float x_in = 0.0f, y_in = 1.0f, z_in = 0.0f;
         float x, y, z;
 
         rm.RotateCoords(x_in, y_in, z_in, x, y, z);
-        // Y axis should be rotated 180 degrees
+        // Point (0,1,0) should be rotated 180 degrees around Z to (0,-1,0)
         REQUIRE(RelativeErrorIsLessThanEpsilon(x, 0.0f));
         REQUIRE(RelativeErrorIsLessThanEpsilon(y, -1.0f));
         REQUIRE(RelativeErrorIsLessThanEpsilon(z, 0.0f));
