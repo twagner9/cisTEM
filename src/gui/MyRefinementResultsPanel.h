@@ -26,7 +26,7 @@ class MyRefinementResultsPanel : public RefinementResultsPanel {
     void OnClassComboBoxChange(wxCommandEvent& event);
     void AngularPlotPopupClick(wxCommandEvent& event);
     void PopupParametersClick(wxCommandEvent& event);
-	void SaveBinnedPlotClick(wxCommandEvent& event);
+    void SaveBinnedPlotClick(wxCommandEvent& event);
 
     void UpdateCachedRefinement( );
     void UpdateBufferedFullRefinement( );
