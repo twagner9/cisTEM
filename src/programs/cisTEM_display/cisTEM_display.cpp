@@ -87,7 +87,8 @@ bool DisplayApp::OnInit( ) {
     wxString cmd_filename;
 
     for ( int i = 0; i < files_to_open.GetCount( ); i++ ) {
-        display_frame->cisTEMDisplayPanel->OpenFile(files_to_open[i], files_to_open[i]);
+        wxString tab_title = wxFileName(files_to_open[i]).GetFullName( );
+        display_frame->cisTEMDisplayPanel->OpenFile(files_to_open[i], tab_title);
     }
 
     display_frame->Layout( );

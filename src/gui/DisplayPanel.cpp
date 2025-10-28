@@ -407,7 +407,6 @@ void DisplayPanel::OnOpen(wxCommandEvent& WXUNUSED(event)) {
             extension is included in this list, which is not robust against the various extensions that
             could exist*/
             OpenFile(path, this_filename);
-            ReturnCurrentPanel( )->short_image_filename = this_filename;
         }
         else
             wxMessageBox(wxT("This file is not a compatible type; must be mrc file format."), wxT("Error"), wxOK | wxICON_INFORMATION);
@@ -854,6 +853,8 @@ void DisplayPanel::OpenFile(wxString wanted_filename, wxString wanted_tab_title,
         wxMessageBox(wxString::Format("Error, Cannot open file (%s)", wanted_filename), wxT("Error"), wxOK | wxICON_INFORMATION, this);
         return;
     }
+
+    my_panel->short_image_filename = wanted_tab_title;
 
     // which images are we including..
 
