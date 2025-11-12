@@ -11964,40 +11964,44 @@ float Image::ReturnBeamTiltSignificanceScore(Image calculated_beam_tilt) {
     return 0.5f * pi_v<float> * powf((0.5f - binarized_score) * mask_radius_local, 2);
 }
 
+/**
+ * @brief Applies a filter linearly proportional to the inverse of the spatial frequency. (sqrt(2)/f [cycles/pixel])
+ * 
+ */
 void Image::ApplyRampFilter( ) {
+    MyDebugAssertTrue(is_in_memory, "Memory not allocated");
 
-    float frequency_squared;
-    float current_frequency;
     // Determined because each pixel is a square; Nyquist frequency = 0.5 cycle/sample, and because each pixel (which is the sample) has a max length of
     // sqrt(2) because of the diagonal, the max frequency can only be half of that
-    float max_frequency = 0.5f * sqrt(2);
-    float current_filter;
-    bool  do_backward_FFT = false;
+    // NOTE: from BAH, I'm not sure I understand this logic.
+    // 1. Original hot loop determines ramp filter as freq / (0.5 * sqrt(2)) -> this makes the filter sqrt(2)/2 (~0.7) at nyquist along the x/y axis and 1 at the x/y corner.
+    // 2. I guess this is just damping the impact of a ramp filter in the traditional sense
+    // 3. The function is currently written to work over x/y/z but a ramp filter as derived should only depend on the X coordinate really (or whatever is normal to your [single] tilt-axis). A ramp filter doesn't apply to other geometries
+    // 4. Ignoring those details, just from an implementation standpoint, VAL / (0.5 * sqrt(2)) == VAL * sqrt(2) so we can remove a division multiplication and sqrt by using * sqrt2_v<float>
+    // constexpr float max_frequency = 0.5f * sqrt2_v<float>;
 
-    long pixel_counter = 0;
+    bool do_backward_FFT{false};
+    long pixel_counter{ };
 
     if ( is_in_real_space ) {
         this->ForwardFFT( );
         do_backward_FFT = true;
     }
+
     // Go through and calculate the total frequency, from all dimensions
     for ( int k = 0; k <= physical_upper_bound_complex_z; k++ ) {
-        float z = powf(ReturnFourierLogicalCoordGivenPhysicalCoord_Z(k) * fourier_voxel_size_z, 2);
+        float z_sq = powf(ReturnFourierLogicalCoordGivenPhysicalCoord_Z(k) * fourier_voxel_size_z, 2);
 
         for ( int j = 0; j <= physical_upper_bound_complex_y; j++ ) {
-            float y = powf(ReturnFourierLogicalCoordGivenPhysicalCoord_Y(j) * fourier_voxel_size_y, 2);
+            float y_sq = powf(ReturnFourierLogicalCoordGivenPhysicalCoord_Y(j) * fourier_voxel_size_y, 2);
 
             for ( int i = 0; i <= physical_upper_bound_complex_x; i++ ) {
-                float x = powf(ReturnFourierLogicalCoordGivenPhysicalCoord_X(i) * fourier_voxel_size_x, 2);
 
-                frequency_squared = x + y + z;
                 // Get the actual frequency, set the filter
-                current_frequency = sqrt(frequency_squared);
-                current_filter    = current_frequency / max_frequency;
+                // float current_frequency = sqrtf(z_sq + y_sq + powf(ReturnFourierLogicalCoordGivenPhysicalCoord_X(i) * fourier_voxel_size_x, 2));
+                float current_filter = sqrt2_v<float> * sqrtf(z_sq + y_sq + powf(ReturnFourierLogicalCoordGivenPhysicalCoord_X(i) * fourier_voxel_size_x, 2));
 
-                // If the current filter is negative, just set the pixel to 0
-                if ( current_filter < 0.0f )
-                    current_filter = 0.0f;
+                // Removed check on filter < 0.0f, this is impossible without powf failing or max_frequency_inv being re-defined
 
                 // Apply filter
                 complex_values[pixel_counter] *= current_filter;
