@@ -1,3 +1,6 @@
+#ifndef _SRC_PROGRAMS_BLUSH_REFINEMENT_BLOCK_ITERATOR_H_
+#define _SRC_PROGRAMS_BLUSH_REFINEMENT_BLOCK_ITERATOR_H_
+
 /**
  * @brief Class enabling iteration over subsets of a volume.
  * Theoretically useful for 1D and 2D objects as well. It handles the state
@@ -29,6 +32,10 @@ class BlockIterator {
 
         std::tuple<int, int, int> operator*( ) {
             return {parent.x_range[x_index], parent.y_range[y_index], parent.z_range[z_index]};
+        }
+
+        int size( ) const {
+            return parent.x_range.size( ) * parent.y_range.size( ) * parent.z_range.size( );
         }
 
         Iterator& operator++( ) {
@@ -65,6 +72,19 @@ class BlockIterator {
 
     Iterator end( ) {
         return Iterator(*this, true);
+    }
+
+    std::tuple<int, int, int> get_coords_by_index(int index) {
+        int z_size = z_range.size( );
+        int y_size = y_range.size( );
+        int x_size = x_range.size( );
+
+        int z_idx     = index / (x_size * y_size);
+        int remaining = index % (x_size * y_size);
+        int y_idx     = remaining / x_size;
+        int x_idx     = remaining % x_size;
+
+        return {x_range[x_idx], y_range[y_idx], z_range[z_idx]};
     }
 
     /**
@@ -133,3 +153,4 @@ class BlockIterator {
     //     return z_index < z_range.size( );
     // }
 };
+#endif

@@ -1,4 +1,5 @@
 #include "../core/gui_core_headers.h"
+#include "MaskingService.h"
 
 extern MyRefinementPackageAssetPanel* refinement_package_asset_panel;
 extern MyRunProfilesPanel*            run_profiles_panel;
@@ -33,16 +34,10 @@ AutoRefine3DPanel::AutoRefine3DPanel(wxWindow* parent)
 
     // If blush is enabled, give the user the option to use it or not.
 #ifdef cisTEM_USING_BLUSH
-    wxBoxSizer*   BlushSizer = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticText* BlushLabel = new wxStaticText(ExpertPanel, wxID_ANY, "Enable Blush Denoising?");
-    fgSizer1->Add(BlushLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-
-    my_refinement_manager.EnableBlushYesButton = new wxRadioButton(ExpertPanel, wxID_ANY, wxT("Yes"), wxDefaultPosition, wxDefaultSize, 0);
-    my_refinement_manager.EnableBlushNoButton  = new wxRadioButton(ExpertPanel, wxID_ANY, wxT("No"), wxDefaultPosition, wxDefaultSize, 0);
-    BlushSizer->Add(my_refinement_manager.EnableBlushYesButton, 0, wxALL, 5);
-    BlushSizer->Add(my_refinement_manager.EnableBlushNoButton, 0, wxALL, 5);
-    fgSizer1->Add(BlushSizer, wxEXPAND);
-    fgSizer1->Layout( );
+    EnableBlushStaticText->Enable(true);
+    EnableBlushYesButton->Enable(true);
+    EnableBlushNoButton->Enable(true);
+    BlushThreadsSpinCtrl->Enable(true);
 #endif
 
     ExpertPanel->SetMinSize(input_size);
@@ -71,6 +66,8 @@ AutoRefine3DPanel::AutoRefine3DPanel(wxWindow* parent)
     RefinementPackageSelectPanel->AssetComboBox->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &AutoRefine3DPanel::OnRefinementPackageComboBox, this);
     Bind(wxEVT_AUTOMASKERTHREAD_COMPLETED, &AutoRefine3DPanel::OnMaskerThreadComplete, this);
     Bind(wxEVT_MULTIPLY3DMASKTHREAD_COMPLETED, &AutoRefine3DPanel::OnMaskerThreadComplete, this);
+    Bind(EVT_UPDATE_MASK_THREAD_PROGRESS, &AutoRefine3DPanel::OnUpdateMaskerThreadProgress, this);
+    Bind(EVT_WORKER_THREAD_MESSAGE, &AutoRefine3DPanel::OnWorkerThreadMessage, this);
     Bind(RETURN_PROCESSED_IMAGE_EVT, &AutoRefine3DPanel::OnOrthThreadComplete, this);
 
     my_refinement_manager.SetParent(this);
@@ -387,8 +384,8 @@ void AutoRefine3DPanel::SetDefaults( ) {
         MaskFilterResolutionText->ChangeValueFloat(20.00);
 
 #ifdef cisTEM_USING_BLUSH
-        my_refinement_manager.EnableBlushNoButton->SetValue(true);
-        my_refinement_manager.EnableBlushYesButton->SetValue(false);
+        EnableBlushNoButton->SetValue(true);
+        EnableBlushYesButton->SetValue(false);
 #endif
 
         ExpertPanel->Thaw( );
@@ -561,6 +558,15 @@ void AutoRefine3DPanel::OnUpdateUI(wxUpdateUIEvent& event) {
                         MaskFilterResolutionText->Enable(false);
                     }
                 }
+
+                if ( EnableBlushYesButton->GetValue( ) ) {
+                    BlushThreadsStaticText->Enable(true);
+                    BlushThreadsSpinCtrl->Enable(true);
+                }
+                else {
+                    BlushThreadsStaticText->Enable(false);
+                    BlushThreadsSpinCtrl->Enable(false);
+                }
             }
 
             bool estimation_button_status = false;
@@ -612,6 +618,12 @@ void AutoRefine3DPanel::OnUpdateUI(wxUpdateUIEvent& event) {
 
 void AutoRefine3DPanel::OnAutoMaskButton(wxCommandEvent& event) {
     auto_mask_value = AutoMaskYesRadioButton->GetValue( );
+}
+
+void AutoRefine3DPanel::OnUpdateMaskerThreadProgress(wxThreadEvent& event) {
+    ProgressBar->SetValue(event.GetInt( ));
+    wxTimeSpan time_remaining = wxTimeSpan(0, 0, event.GetExtraLong( ));
+    TimeRemainingText->SetLabel(time_remaining.Format("Time Remaining : %Hh:%Mm:%Ss"));
 }
 
 void AutoRefine3DPanel::OnUseMaskCheckBox(wxCommandEvent& event) {
@@ -670,6 +682,12 @@ void AutoRefine3DPanel::OnInputParametersComboBox(wxCommandEvent& event) {
 void AutoRefine3DPanel::TerminateButtonClick(wxCommandEvent& event) {
     main_frame->job_controller.KillJob(my_job_id);
 
+    if ( masking_thread ) {
+        stop_flag->store(true, std::memory_order_relaxed);
+        StopAndDestroyMaskingThread(masking_thread);
+        stop_flag.reset( );
+        stop_flag = std::make_shared<std::atomic<bool>>(false);
+    }
     active_mask_thread_id = -1;
     active_orth_thread_id = -1;
 
@@ -813,8 +831,15 @@ void AutoRefinementManager::BeginRefinementCycle( ) {
     active_mask_weight                 = my_parent->MaskWeightTextCtrl->ReturnValue( );
 
 #ifdef cisTEM_USING_BLUSH
-    apply_blush_denoising = EnableBlushYesButton->GetValue( );
+    apply_blush_denoising = my_parent->EnableBlushYesButton->GetValue( );
+    num_blush_threads     = my_parent->BlushThreadsSpinCtrl->GetValue( );
 #endif
+
+    // DEBUG
+    wxPrintf("apply_blush_denoising: %s\n", (apply_blush_denoising) ? "true" : "false");
+
+    if ( apply_blush_denoising )
+        MyDebugAssertFalse(active_should_auto_mask && active_should_mask, "Masking should either be from user file, or auto, not both");
 
     reference_3d_contains_all_particles = false;
 
@@ -959,10 +984,16 @@ void AutoRefinementManager::BeginRefinementCycle( ) {
 
     //my_parent->Thaw();
 
-    // If either of these is true, and we're shifting the blush logic to refine3d, we should
-    // not use the masking logic used for blush.
-    if ( active_should_auto_mask == true || active_should_mask == true ) {
-        DoMasking( );
+    // DEBUG: cancel out blushing in the first iteration, see if output ends up the same as merge3d version without this
+    if ( active_should_auto_mask == true || active_should_mask == true || apply_blush_denoising ) {
+        // my_parent->Freeze( );
+        if ( apply_blush_denoising ) {
+            my_parent->NumberConnectedText->SetLabel("Running Blush...");
+            my_parent->Layout( );
+        }
+        // my_parent->Thaw( );
+        // DoMasking( );
+        DispatchMasking(my_parent);
     }
     else {
         SetupRefinementJob( );
@@ -1529,10 +1560,7 @@ void AutoRefinementManager::SetupRefinementJob( ) {
 
             int max_threads = 1;
 
-            bool  use_blush_mask    = (! active_should_auto_mask && ! active_should_mask) ? true : false;
-            float particle_diameter = static_cast<float>(active_refinement_package->estimated_particle_size_in_angstroms);
-
-            my_parent->current_job_package.AddJob("ttttbttttiiffffffffffffifffffffffbbbbbbbbbbbbbbbibibbbbf",
+            my_parent->current_job_package.AddJob("ttttbttttiiffffffffffffifffffffffbbbbbbbbbbbbbbbibibbb",
                                                   input_particle_images.ToUTF8( ).data( ),
                                                   input_parameter_file.ToUTF8( ).data( ),
                                                   input_reconstruction.ToUTF8( ).data( ),
@@ -1585,10 +1613,8 @@ void AutoRefinementManager::SetupRefinementJob( ) {
                                                   global_local_refinement,
                                                   class_counter,
                                                   ignore_input_parameters,
-                                                  defocus_bias,
-                                                  apply_blush_denoising,
-                                                  use_blush_mask,
-                                                  particle_diameter);
+                                                  defocus_bias
+                                                  /*first_iteration*/);
         }
     }
 
@@ -1994,77 +2020,6 @@ void AutoRefinementManager::ProcessAllJobsFinished( ) {
     }
 }
 
-void AutoRefinementManager::DoMasking( ) {
-    MyDebugAssertTrue(active_should_auto_mask || active_should_mask, "DoMasking called, when masking not ticked!");
-    MyDebugAssertFalse(active_should_auto_mask && active_should_mask, "Masking should either be from user file, or auto, not both");
-
-    wxArrayString masked_filenames;
-    wxFileName    current_ref_filename;
-    wxString      current_masked_filename;
-    wxString      filename_of_mask = active_mask_filename;
-
-    for ( int class_counter = 0; class_counter < current_reference_filenames.GetCount( ); class_counter++ ) {
-        current_ref_filename    = current_reference_filenames.Item(class_counter);
-        current_masked_filename = main_frame->ReturnAutoRefine3DScratchDirectory( ) + current_ref_filename.GetName( );
-        current_masked_filename += "_masked.mrc";
-
-        masked_filenames.Add(current_masked_filename);
-    }
-
-    if ( active_should_mask ) {
-
-        my_parent->WriteInfoText("Masking reference reconstruction with selected mask");
-
-        float wanted_cosine_edge_width   = active_mask_edge;
-        float wanted_weight_outside_mask = active_mask_weight;
-
-        float wanted_low_pass_filter_radius;
-
-        if ( active_should_low_pass_filter_mask == true ) {
-            wanted_low_pass_filter_radius = active_mask_filter_resolution;
-        }
-        else {
-            wanted_low_pass_filter_radius = 0.0;
-        }
-
-        my_parent->active_mask_thread_id = my_parent->next_thread_id;
-        my_parent->next_thread_id++;
-
-        Multiply3DMaskerThread* mask_thread = new Multiply3DMaskerThread(my_parent, current_reference_filenames, masked_filenames, filename_of_mask, wanted_cosine_edge_width, wanted_weight_outside_mask, wanted_low_pass_filter_radius, input_refinement->resolution_statistics_pixel_size, my_parent->active_mask_thread_id);
-
-        if ( mask_thread->Run( ) != wxTHREAD_NO_ERROR ) {
-            my_parent->WriteErrorText("Error: Cannot start masking thread, masking will not be performed");
-            delete mask_thread;
-        }
-        else {
-            current_reference_filenames = masked_filenames;
-            return;
-        }
-    }
-    else {
-
-        my_parent->WriteInfoText("Automasking reference reconstruction");
-
-        my_parent->active_mask_thread_id = my_parent->next_thread_id;
-        my_parent->next_thread_id++;
-
-        float current_res = input_refinement->class_refinement_results[0].class_resolution_statistics.ReturnEstimatedResolution(true);
-        if ( current_res > class_high_res_limits[0] )
-            current_res = class_high_res_limits[0];
-        wxPrintf("Estimated resolution = %.2f\n", current_res);
-        AutoMaskerThread* mask_thread = new AutoMaskerThread(my_parent, current_reference_filenames, masked_filenames, input_refinement->resolution_statistics_pixel_size, active_mask_radius, my_parent->active_mask_thread_id, current_res);
-
-        if ( mask_thread->Run( ) != wxTHREAD_NO_ERROR ) {
-            my_parent->WriteErrorText("Error: Cannot start masking thread, masking will not be performed");
-            delete mask_thread;
-        }
-        else {
-            current_reference_filenames = masked_filenames;
-            return; // just return, we will startup again whent he mask thread finishes.
-        }
-    }
-}
-
 void AutoRefinementManager::CycleRefinement( ) {
     percent_used_per_round.Add(current_percent_used);
 
@@ -2243,7 +2198,12 @@ void AutoRefinementManager::CycleRefinement( ) {
         output_refinement->refinement_package_asset_id = input_refinement->refinement_package_asset_id;
 
         if ( active_should_mask == true || active_should_auto_mask == true ) {
-            DoMasking( );
+            // my_parent->Freeze( );
+            my_parent->NumberConnectedText->SetLabel("Running Blush...");
+            my_parent->Layout( );
+            // my_parent->Thaw( );
+            // DoMasking(true);
+            DispatchMasking(my_parent);
         }
         else {
             SetupRefinementJob( );
@@ -2252,9 +2212,20 @@ void AutoRefinementManager::CycleRefinement( ) {
     }
 }
 
+void AutoRefine3DPanel::OnWorkerThreadMessage(wxThreadEvent& event) {
+    wxString msg = event.GetString( );
+    WriteErrorText(msg);
+    my_refinement_manager.apply_blush_denoising = false; // skip future calls to blush if we can't do it
+}
+
 void AutoRefine3DPanel::OnMaskerThreadComplete(wxThreadEvent& my_event) {
-    if ( my_event.GetInt( ) == active_mask_thread_id )
+    if ( my_event.GetInt( ) == active_mask_thread_id ) {
+        wxPrintf("active_thread_id == %i\n", active_mask_thread_id);
         my_refinement_manager.OnMaskerThreadComplete( );
+    }
+    else {
+        wxPrintf("Thread IDs did not match; active_mask_thread_id == %i, returned ID == %i\n", active_mask_thread_id, my_event.GetInt( ));
+    }
 }
 
 void AutoRefinementManager::OnMaskerThreadComplete( ) {

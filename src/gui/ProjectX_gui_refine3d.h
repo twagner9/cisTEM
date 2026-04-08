@@ -380,6 +380,11 @@ class Refine3DPanel : public JobPanel
 		wxRadioButton* LowPassMaskNoRadio;
 		wxStaticText* FilterResolutionStaticText;
 		NumericTextCtrl* MaskFilterResolutionText;
+		wxStaticText* EnableBlushStaticText;
+		wxRadioButton* EnableBlushYesButton;
+		wxRadioButton* EnableBlushNoButton;
+		wxStaticText* BlushThreadsStaticText;
+		wxSpinCtrl* BlushThreadsSpinCtrl;
 		wxPanel* OutputTextPanel;
 		wxTextCtrl* output_textctrl;
 		wxPanel* InfoPanel;

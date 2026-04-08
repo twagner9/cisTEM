@@ -86,6 +86,7 @@ noinst_HEADERS = core/stopwatch.h \
                  core/eer_file.h \
                  gui/job_panel.h \
                  gui/gui_functions.h \
+				 gui/MaskingService.h \
                  gui/DatabaseUpdateDialog.h \
                  gui/ResultsDataViewListCtrl.h \
                  gui/BitmapPanel.h \
@@ -242,11 +243,12 @@ noinst_HEADERS = core/stopwatch.h \
                  gui/AtomicCoordinatesChooserDialog.h \
                  gui/AtomicCoordinatesImportDialog.h \
                  programs/cisTEM_display/display_gui.h
-                 
 
-                 
-
-                 
+if ENABLE_BLUSH
+noinst_HEADERS += programs/blush_refinement/blush_model.h \
+				  programs/blush_refinement/blush_helpers.h
+endif
+                             
 if EXPERIMENTAL_AM
 noinst_HEADERS += 	gui/icons/experimental_icon.cpp \
                     core/water.h \
@@ -663,7 +665,6 @@ libcore_a_SOURCES  = core/stopwatch.cpp \
                        core/padded_coordinates.cpp
 
 
-
 if EXPERIMENTAL_AM
 libcore_a_SOURCES += core/water.cpp
 endif
@@ -690,6 +691,7 @@ cisTEM_SOURCES = programs/projectx/projectx.cpp \
                 gui/BitmapPanel.cpp \
                 gui/PickingBitmapPanel.cpp \
                 gui/job_panel.cpp \
+				gui/MaskingService.cpp \
                 gui/ProjectX_gui_abinitio.cpp \
                 gui/ProjectX_gui_assets.cpp \
                 gui/ProjectX_gui_autorefine.cpp \
@@ -779,6 +781,10 @@ cisTEM_SOURCES = programs/projectx/projectx.cpp \
                 gui/AtomicCoordinatesImportDialog.cpp \
                 gui/ResampleDialog.cpp
 
+if ENABLE_BLUSH
+cisTEM_SOURCES += programs/blush_refinement/blush_model.cpp programs/blush_refinement/blush_helpers.cpp
+endif
+
 if EXPERIMENTAL_AM
 cisTEM_SOURCES +=  gui/RefineTemplateDevPanel.cpp gui/MyExperimentalPanel.cpp 
 endif
@@ -788,8 +794,8 @@ cisTEM_SOURCES += gui/WebViewPanel.cpp
 endif
 
 cisTEM_CXXFLAGS = $(WX_CPPFLAGS)
-cisTEM_CPPFLAGS = $(WX_CPPFLAGS)
-cisTEM_LDADD    = libguicore.a libcore.a $(WX_LIBS) $(MKL_LIBS)
+cisTEM_CPPFLAGS = $(WX_CPPFLAGS) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186 
+cisTEM_LDADD    = $(BLUSH_LIBS) libguicore.a libcore.a $(WX_LIBS) $(MKL_LIBS)
 cisTEM_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 cisTEM_display_SOURCES = programs/cisTEM_display/cisTEM_display.cpp programs/cisTEM_display/display_gui.cpp gui/DisplayPanel.cpp gui/DisplayFrame.cpp programs/cisTEM_display/DisplayServer.cpp
@@ -801,7 +807,7 @@ cisTEM_display_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 gui_test_SOURCES = programs/gui_test/gui_test.cpp gui/PlotCurvePanel.cpp gui/mathplot.cpp
 gui_test_CXXFLAGS = $(WX_CPPFLAGS)
 gui_test_CPPFLAGS = $(WX_CPPFLAGS)
-gui_test_LDADD = libguicore.a libcore.a $(WX_LIBS)
+gui_test_LDADD = libguicore.a libcore.a $(WX_LIBS) $(MKL_LIBS)
 gui_test_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 cisTEM_job_control_SOURCES  = programs/guix_job_control/guix_job_control.cpp 
@@ -873,9 +879,12 @@ reconstruct3d_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 reconstruct3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 merge3d_SOURCES  = programs/merge3d/merge3d.cpp
+if ENABLE_BLUSH
+merge3d_SOURCES += programs/blush_refinement/blush_model.cpp
+endif
 
 merge3d_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-merge3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) 
+merge3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186 
 merge3d_LDADD    = $(BLUSH_LIBS) libcore.a  $(WX_LIBS_BASE) $(MKL_LIBS)
 merge3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
@@ -896,7 +905,7 @@ if ENABLE_BLUSH
 refine3d_SOURCES += programs/blush_refinement/blush_model.cpp
 endif
 refine3d_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-refine3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
+refine3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
 refine3d_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) 
 refine3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
@@ -1155,11 +1164,11 @@ azimuthal_average_LDADD    = libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 azimuthal_average_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
 if ENABLE_BLUSHREFINEMENT_AM
-blush_refinement_SOURCES  = programs/blush_refinement/blush_refinement.cpp programs/blush_refinement/blush_model.cpp
+blush_refinement_SOURCES  = programs/blush_refinement/blush_model.cpp programs/blush_refinement/blush_helpers.cpp programs/blush_refinement/blush_refinement.cpp
 blush_refinement_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
+blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
 blush_refinement_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) #-L/mnt/libtorch/lib -ltorch -ltorch_cpu -lc10
-blus_refinement_LIBTOOLFLAGS= $(LIBTOOL_FLAGS)
+blush_refinement_LIBTOOLFLAGS= $(LIBTOOL_FLAGS)
 endif
 
 multiply_two_stacks_SOURCES  = programs/multiply_two_stacks/multiply_two_stacks.cpp

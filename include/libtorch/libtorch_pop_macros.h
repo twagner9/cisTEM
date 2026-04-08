@@ -14,15 +14,16 @@
  * libraries.
  * 
  */
-#pragma pop_macro("CHAR")
-#pragma pop_macro("DOUBLE")
-#pragma pop_macro("LONG")
-#pragma pop_macro("BOOL")
-#pragma pop_macro("FLOAT")
-#pragma pop_macro("INTEGER")
-#pragma pop_macro("TEXT")
-#pragma pop_macro("NONE")
+// #pragma pop_macro("CHAR")
+// #pragma pop_macro("DOUBLE")
+// #pragma pop_macro("LONG")
+// #pragma pop_macro("BOOL")
+// #pragma pop_macro("FLOAT")
+// #pragma pop_macro("INTEGER")
+// #pragma pop_macro("TEXT")
+// #pragma pop_macro("NONE")
 #pragma pop_macro("N_")
+#pragma pop_macro("UNCHECKED")
 
 #endif // cisTEM_USING_LIBTORCH
 #endif // _INCLUDE_LIBTORCH_LIBTORCH_POP_MACROS_H_

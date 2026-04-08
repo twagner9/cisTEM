@@ -376,6 +376,45 @@ AbInitio3DPanelParent::AbInitio3DPanelParent( wxWindow* parent, wxWindowID id, c
 
 	fgSizer1->Add( ImagesPerClassSpinCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+	EnableBlushStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Enable Blush Denoising?"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushStaticText->Wrap( -1 );
+	EnableBlushStaticText->Enable( false );
+
+	fgSizer1->Add( EnableBlushStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer27;
+	bSizer27 = new wxBoxSizer( wxHORIZONTAL );
+
+	EnableBlushYesButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("Yes"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+	EnableBlushYesButton->Enable( false );
+
+	bSizer27->Add( EnableBlushYesButton, 0, wxALL, 5 );
+
+	EnableBlushNoButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("No"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushNoButton->Enable( false );
+
+	bSizer27->Add( EnableBlushNoButton, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( bSizer27, 1, wxEXPAND, 5 );
+
+	BlushThreadsStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush Threads: "), wxDefaultPosition, wxDefaultSize, 0 );
+	BlushThreadsStaticText->Wrap( -1 );
+	BlushThreadsStaticText->Enable( false );
+
+	fgSizer1->Add( BlushThreadsStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer28;
+	bSizer28 = new wxBoxSizer( wxHORIZONTAL );
+
+	BlushThreadsSpinCtrl = new wxSpinCtrl( ExpertPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 128, 1 );
+	BlushThreadsSpinCtrl->Enable( false );
+
+	bSizer28->Add( BlushThreadsSpinCtrl, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( bSizer28, 1, wxEXPAND, 5 );
+
 
 	InputSizer->Add( fgSizer1, 1, wxEXPAND, 5 );
 

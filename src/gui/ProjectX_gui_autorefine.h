@@ -63,6 +63,8 @@ class AutoRefine3DPanelParent : public JobPanel
 		wxToggleButton* ExpertToggleButton;
 		wxStaticText* PleaseCreateRefinementPackageText;
 		wxStaticLine* m_staticline105;
+		wxPanel* OutputTextPanel;
+		wxTextCtrl* output_textctrl;
 		wxScrolledWindow* ExpertPanel;
 		wxBoxSizer* InputSizer;
 		wxButton* ResetAllDefaultsButton;
@@ -108,8 +110,11 @@ class AutoRefine3DPanelParent : public JobPanel
 		wxRadioButton* LowPassMaskNoRadio;
 		wxStaticText* FilterResolutionStaticText;
 		NumericTextCtrl* MaskFilterResolutionText;
-		wxPanel* OutputTextPanel;
-		wxTextCtrl* output_textctrl;
+		wxStaticText* EnableBlushStaticText;
+		wxRadioButton* EnableBlushYesButton;
+		wxRadioButton* EnableBlushNoButton;
+		wxStaticText* BlushThreadsStaticText;
+		wxSpinCtrl* BlushThreadsSpinCtrl;
 		wxPanel* InfoPanel;
 		wxRichTextCtrl* InfoText;
 		wxStaticLine* m_staticline11;

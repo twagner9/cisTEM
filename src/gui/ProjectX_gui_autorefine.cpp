@@ -129,6 +129,21 @@ AutoRefine3DPanelParent::AutoRefine3DPanelParent( wxWindow* parent, wxWindowID i
 	wxBoxSizer* bSizer46;
 	bSizer46 = new wxBoxSizer( wxHORIZONTAL );
 
+	OutputTextPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	OutputTextPanel->Hide();
+
+	wxBoxSizer* bSizer56;
+	bSizer56 = new wxBoxSizer( wxVERTICAL );
+
+	output_textctrl = new wxTextCtrl( OutputTextPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+	bSizer56->Add( output_textctrl, 1, wxALL|wxEXPAND, 5 );
+
+
+	OutputTextPanel->SetSizer( bSizer56 );
+	OutputTextPanel->Layout();
+	bSizer56->Fit( OutputTextPanel );
+	bSizer46->Add( OutputTextPanel, 20, wxEXPAND | wxALL, 5 );
+
 	ExpertPanel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxVSCROLL );
 	ExpertPanel->SetScrollRate( 5, 5 );
 	ExpertPanel->Hide();
@@ -350,6 +365,51 @@ AutoRefine3DPanelParent::AutoRefine3DPanelParent( wxWindow* parent, wxWindowID i
 	MaskFilterResolutionText = new NumericTextCtrl( ExpertPanel, wxID_ANY, wxT("20.00"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer1->Add( MaskFilterResolutionText, 0, wxALL, 5 );
 
+	EnableBlushStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Enable Blush Denoising?"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushStaticText->Wrap( -1 );
+	EnableBlushStaticText->Enable( false );
+
+	fgSizer1->Add( EnableBlushStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer30;
+	bSizer30 = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer29;
+	bSizer29 = new wxBoxSizer( wxHORIZONTAL );
+
+	EnableBlushYesButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("Yes"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+	EnableBlushYesButton->Enable( false );
+
+	bSizer29->Add( EnableBlushYesButton, 0, wxALL, 5 );
+
+	EnableBlushNoButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("No"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushNoButton->Enable( false );
+
+	bSizer29->Add( EnableBlushNoButton, 0, wxALL, 5 );
+
+
+	bSizer30->Add( bSizer29, 1, wxEXPAND, 5 );
+
+
+	fgSizer1->Add( bSizer30, 1, wxEXPAND, 5 );
+
+	BlushThreadsStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush Threads: "), wxDefaultPosition, wxDefaultSize, 0 );
+	BlushThreadsStaticText->Wrap( -1 );
+	BlushThreadsStaticText->Enable( false );
+
+	fgSizer1->Add( BlushThreadsStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer32;
+	bSizer32 = new wxBoxSizer( wxHORIZONTAL );
+
+	BlushThreadsSpinCtrl = new wxSpinCtrl( ExpertPanel, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 128, 1 );
+	BlushThreadsSpinCtrl->Enable( false );
+
+	bSizer32->Add( BlushThreadsSpinCtrl, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( bSizer32, 1, wxEXPAND, 5 );
+
 
 	InputSizer->Add( fgSizer1, 1, wxEXPAND, 5 );
 
@@ -358,21 +418,6 @@ AutoRefine3DPanelParent::AutoRefine3DPanelParent( wxWindow* parent, wxWindowID i
 	ExpertPanel->Layout();
 	InputSizer->Fit( ExpertPanel );
 	bSizer46->Add( ExpertPanel, 0, wxALL|wxEXPAND, 5 );
-
-	OutputTextPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	OutputTextPanel->Hide();
-
-	wxBoxSizer* bSizer56;
-	bSizer56 = new wxBoxSizer( wxVERTICAL );
-
-	output_textctrl = new wxTextCtrl( OutputTextPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
-	bSizer56->Add( output_textctrl, 1, wxALL|wxEXPAND, 5 );
-
-
-	OutputTextPanel->SetSizer( bSizer56 );
-	OutputTextPanel->Layout();
-	bSizer56->Fit( OutputTextPanel );
-	bSizer46->Add( OutputTextPanel, 20, wxEXPAND | wxALL, 5 );
 
 	InfoPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer61;

@@ -1384,6 +1384,45 @@ Refine3DPanel::Refine3DPanel( wxWindow* parent, wxWindowID id, const wxPoint& po
 	MaskFilterResolutionText = new NumericTextCtrl( ExpertPanel, wxID_ANY, wxT("20.00"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer1->Add( MaskFilterResolutionText, 0, wxALL, 5 );
 
+	EnableBlushStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Enable Blush Denoising?"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushStaticText->Wrap( -1 );
+	EnableBlushStaticText->Enable( false );
+
+	fgSizer1->Add( EnableBlushStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer97;
+	bSizer97 = new wxBoxSizer( wxHORIZONTAL );
+
+	EnableBlushYesButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("Yes"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+	EnableBlushYesButton->Enable( false );
+
+	bSizer97->Add( EnableBlushYesButton, 0, wxALL, 5 );
+
+	EnableBlushNoButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("No"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushNoButton->Enable( false );
+
+	bSizer97->Add( EnableBlushNoButton, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( bSizer97, 1, wxEXPAND, 5 );
+
+	BlushThreadsStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush threads: "), wxDefaultPosition, wxDefaultSize, 0 );
+	BlushThreadsStaticText->Wrap( -1 );
+	BlushThreadsStaticText->Enable( false );
+
+	fgSizer1->Add( BlushThreadsStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer98;
+	bSizer98 = new wxBoxSizer( wxVERTICAL );
+
+	BlushThreadsSpinCtrl = new wxSpinCtrl( ExpertPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 128, 1 );
+	BlushThreadsSpinCtrl->Enable( false );
+
+	bSizer98->Add( BlushThreadsSpinCtrl, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( bSizer98, 1, wxEXPAND, 5 );
+
 
 	InputSizer->Add( fgSizer1, 1, wxEXPAND, 5 );
 
