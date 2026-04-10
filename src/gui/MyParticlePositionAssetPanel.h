@@ -9,6 +9,7 @@ class MyParticlePositionAssetPanel : public MyAssetPanelParent {
 
     void ImportAssetClick(wxCommandEvent& event);
     void NewFromParentClick(wxCommandEvent& event);
+    void OnExportClick(wxCommandEvent& event);
 
     void EnableNewFromParentButton( );
 

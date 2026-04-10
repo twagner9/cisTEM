@@ -344,6 +344,7 @@ class AssetPanelParent : public wxPanel
 		wxButton* AddSelectedAssetButton;
 		wxButton* DisplayButton;
 		wxButton* ResampleButton;
+		wxButton* ExportButton;
 		wxStaticLine* m_staticline6;
 		wxStaticText* Label0Title;
 		wxStaticText* Label0Text;
@@ -391,6 +392,7 @@ class AssetPanelParent : public wxPanel
 		virtual void AddSelectedAssetClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnDisplayButtonClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnResampleClick( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnExportClick( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:

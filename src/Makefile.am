@@ -118,6 +118,7 @@ noinst_HEADERS = core/stopwatch.h \
                  gui/MySettingsPanel.h \
                  gui/PickingResultsPanel.h \
                  gui/MyParticlePositionExportDialog.h \
+                 gui/MyPickingJobExportDialog.h \
                  gui/MyFrealignExportDialog.h \
                  gui/MyRelionExportDialog.h \
                  gui/MyRefinementPackageAssetPanel.h \
@@ -722,6 +723,7 @@ cisTEM_SOURCES = programs/projectx/projectx.cpp \
                 gui/ActionsPanelTm.cpp \
                 gui/MySettingsPanel.cpp \
                 gui/MyParticlePositionExportDialog.cpp \
+                gui/MyPickingJobExportDialog.cpp \
                 gui/MyFrealignExportDialog.cpp \
                 gui/MyRelionExportDialog.cpp \
                 gui/MyRefinementPackageAssetPanel.cpp \

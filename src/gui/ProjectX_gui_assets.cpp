@@ -1072,6 +1072,11 @@ AssetPanelParent::AssetPanelParent( wxWindow* parent, wxWindowID id, const wxPoi
 
 	bSizer28->Add( ResampleButton, 0, wxALL|wxEXPAND, 5 );
 
+	ExportButton = new wxButton( m_panel3, wxID_ANY, wxT("Export"), wxDefaultPosition, wxDefaultSize, 0 );
+	ExportButton->Hide();
+
+	bSizer28->Add( ExportButton, 0, wxALL|wxEXPAND, 5 );
+
 
 	bSizer25->Add( bSizer28, 0, wxEXPAND, 5 );
 
@@ -1260,6 +1265,7 @@ AssetPanelParent::AssetPanelParent( wxWindow* parent, wxWindowID id, const wxPoi
 	AddSelectedAssetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::AddSelectedAssetClick ), NULL, this );
 	DisplayButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::OnDisplayButtonClick ), NULL, this );
 	ResampleButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::OnResampleClick ), NULL, this );
+	ExportButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::OnExportClick ), NULL, this );
 }
 
 AssetPanelParent::~AssetPanelParent()
@@ -1305,6 +1311,7 @@ AssetPanelParent::~AssetPanelParent()
 	AddSelectedAssetButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::AddSelectedAssetClick ), NULL, this );
 	DisplayButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::OnDisplayButtonClick ), NULL, this );
 	ResampleButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::OnResampleClick ), NULL, this );
+	ExportButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( AssetPanelParent::OnExportClick ), NULL, this );
 
 }
 
