@@ -1074,6 +1074,7 @@ AssetPanelParent::AssetPanelParent( wxWindow* parent, wxWindowID id, const wxPoi
 
 	ExportButton = new wxButton( m_panel3, wxID_ANY, wxT("Export"), wxDefaultPosition, wxDefaultSize, 0 );
 	ExportButton->Hide();
+	ExportButton->SetToolTip( wxT("Export particle positions to a text file") );
 
 	bSizer28->Add( ExportButton, 0, wxALL|wxEXPAND, 5 );
 
