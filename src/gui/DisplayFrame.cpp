@@ -83,7 +83,7 @@ void DisplayFrame::OnSaveDisplayedImagesClick(wxCommandEvent& event) {
 
     // Crop out the blank space around the image: get the true width of the relevant area on the bitmap.
     wxBitmap sub_bitmap = CropImageForSaving( );
-
+    DrawScaleBarOnBitmap(sub_bitmap);
     sub_bitmap.SaveFile(save_file_dialog.GetPath( ), wxBITMAP_TYPE_PNG);
 }
 
@@ -107,9 +107,10 @@ void DisplayFrame::OnSaveDisplayedImagesWithLegendClick(wxCommandEvent& event) {
     }
 
     // Crop out the blank space around the image: get the true width of the relevant area on the bitmap.
-    wxBitmap sub_bitmap     = CropImageForSaving( );
-    int      sub_bmp_width  = sub_bitmap.GetWidth( );
-    int      sub_bmp_height = sub_bitmap.GetHeight( );
+    wxBitmap sub_bitmap = CropImageForSaving( );
+    DrawScaleBarOnBitmap(sub_bitmap);
+    int sub_bmp_width  = sub_bitmap.GetWidth( );
+    int sub_bmp_height = sub_bitmap.GetHeight( );
 
     // Create legend, width of 80 pixels
     int legend_width = 80;
@@ -239,6 +240,43 @@ void DisplayFrame::OnLocationNumberClick(wxCommandEvent& event) {
     else
         cisTEMDisplayPanel->ReturnCurrentPanel( )->show_label = true;
 
+    cisTEMDisplayPanel->ReturnCurrentPanel( )->ReDrawPanel( );
+}
+
+void DisplayFrame::OnLabelScaleBarClick(wxCommandEvent& event) {
+    if ( ! cisTEMDisplayPanel->ReturnCurrentPanel( )->single_image )
+        return;
+
+    // Turning the scale bar off needs no pixel size check
+    if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->draw_scale_bar ) {
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->draw_scale_bar = false;
+        cisTEMDisplayPanel->ReturnCurrentPanel( )->ReDrawPanel( );
+        return;
+    }
+
+    // Turning it on: we need a real pixel size. If none has been set yet,
+    // prompt the user exactly as OnShowResolution does.
+    if ( ! cisTEMDisplayPanel->ReturnCurrentPanel( )->resolution_instead_of_radius ) {
+        double            wanted_pixel_size;
+        wxTextEntryDialog text_dialog(this, wxT("Pixel Size (Angstroms)"), wxT("Select Pixel Size"),
+                                      wxString::Format(wxT("%.2f"), cisTEMDisplayPanel->ReturnCurrentPanel( )->pixel_size),
+                                      wxOK | wxCANCEL | wxCENTRE, wxDefaultPosition);
+        if ( text_dialog.ShowModal( ) != wxID_OK ) {
+            // User cancelled — uncheck the menu item and bail
+            LabelScaleBar->Check(false);
+            return;
+        }
+        wxString current_value = text_dialog.GetValue( );
+        if ( current_value.ToDouble(&wanted_pixel_size) && wanted_pixel_size > 0.0 ) {
+            cisTEMDisplayPanel->ReturnCurrentPanel( )->pixel_size = wanted_pixel_size;
+        }
+        else {
+            LabelScaleBar->Check(false);
+            return;
+        }
+    }
+
+    cisTEMDisplayPanel->ReturnCurrentPanel( )->draw_scale_bar = true;
     cisTEMDisplayPanel->ReturnCurrentPanel( )->ReDrawPanel( );
 }
 
@@ -689,6 +727,7 @@ void DisplayFrame::DisableAllToolbarButtons( ) {
 
     // Label menu
     LabelLocationNumber->Enable(false);
+    LabelScaleBar->Enable(false);
 
     // Select menu
     SelectImageSelectionMode->Enable(false);
@@ -714,6 +753,7 @@ void DisplayFrame::EnableAllToolbarButtons( ) {
 
     // Label menu
     LabelLocationNumber->Enable( );
+    LabelScaleBar->Enable( );
 
     // Select menu
     SelectImageSelectionMode->Enable(true);
@@ -767,6 +807,16 @@ void DisplayFrame::OnUpdateUI(wxUpdateUIEvent& event) {
             CoordSize7->Check(true);
         else if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->selected_point_size == 10 )
             CoordSize10->Check(true);
+
+        LabelScaleBar->Enable(cisTEMDisplayPanel->ReturnCurrentPanel( )->single_image);
+        if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->draw_scale_bar ) {
+            if ( ! LabelScaleBar->IsChecked( ) )
+                LabelScaleBar->Check(true);
+        }
+        else {
+            if ( LabelScaleBar->IsChecked( ) )
+                LabelScaleBar->Check(false);
+        }
 
         // Make sure single image mode is checked/unchecked based on current panel
         if ( cisTEMDisplayPanel->ReturnCurrentPanel( )->single_image ) {
@@ -922,4 +972,59 @@ wxBitmap DisplayFrame::CropImageForSaving( ) {
         sub_bitmap = cisTEMDisplayPanel->ReturnCurrentPanel( )->panel_bitmap.GetSubBitmap(sub_bmp_dims);
     }
     return sub_bitmap;
+}
+
+void DisplayFrame::DrawScaleBarOnBitmap(wxBitmap& target_bitmap) {
+    if ( ! cisTEMDisplayPanel->ReturnCurrentPanel( )->draw_scale_bar ||
+         ! cisTEMDisplayPanel->ReturnCurrentPanel( )->single_image )
+        return;
+
+    const int   bmp_width                  = target_bitmap.GetWidth( );
+    const int   bmp_height                 = target_bitmap.GetHeight( );
+    const float actual_scale_factor        = cisTEMDisplayPanel->ReturnCurrentPanel( )->actual_scale_factor;
+    const float pixel_size                 = cisTEMDisplayPanel->ReturnCurrentPanel( )->pixel_size;
+    const float image_in_bitmap_pixel_size = pixel_size / actual_scale_factor;
+
+    int scalebar_length;
+    {
+        const float bar_must_be_multiple_of = 5.0f;
+        float       ideal_length_in_pixels  = float(bmp_width) * 0.1f;
+        float       ideal_length_in_nm      = ideal_length_in_pixels * image_in_bitmap_pixel_size * 0.1f;
+        ideal_length_in_nm                  = roundf(ideal_length_in_nm / bar_must_be_multiple_of) * bar_must_be_multiple_of;
+        if ( ideal_length_in_nm < bar_must_be_multiple_of )
+            ideal_length_in_nm = bar_must_be_multiple_of;
+        ideal_length_in_pixels = ideal_length_in_nm * 10.0f / image_in_bitmap_pixel_size;
+        scalebar_length        = myroundint(ideal_length_in_pixels);
+    }
+
+    int scalebar_thickness = int(float(bmp_height) / 50.0f);
+    if ( scalebar_thickness < 2 )
+        scalebar_thickness = 2;
+
+    int scalebar_x_start = int(float(bmp_width) * 0.85f) - scalebar_length / 2;
+    int scalebar_y_pos   = int(float(bmp_height) * 0.95f) - scalebar_thickness;
+
+    if ( scalebar_x_start < 0 )
+        scalebar_x_start = 0;
+    if ( scalebar_x_start + scalebar_length > bmp_width )
+        scalebar_x_start = bmp_width - scalebar_length;
+
+    wxMemoryDC dc(target_bitmap);
+    dc.SetPen(wxPen(*wxWHITE));
+    dc.SetBrush(*wxWHITE_BRUSH);
+    dc.DrawRectangle(scalebar_x_start, scalebar_y_pos, scalebar_length, scalebar_thickness);
+
+    dc.SetTextForeground(*wxWHITE);
+    int label_font_size = std::max(9, int(float(scalebar_thickness) * 0.75f));
+    dc.SetFont(wxFont(label_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+
+    wxString scalebar_label = wxString::Format("%.0f nm", float(scalebar_length) * image_in_bitmap_pixel_size * 0.1f);
+    int      scalebar_label_width;
+    int      scalebar_label_height;
+    dc.GetTextExtent(scalebar_label, &scalebar_label_width, &scalebar_label_height);
+    dc.DrawText(scalebar_label,
+                scalebar_x_start + scalebar_length / 2 - scalebar_label_width / 2,
+                scalebar_y_pos - scalebar_label_height - scalebar_thickness / 8);
+
+    dc.SelectObject(wxNullBitmap);
 }

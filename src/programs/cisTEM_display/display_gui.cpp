@@ -80,6 +80,9 @@ DisplayFrameParent::DisplayFrameParent(wxWindow* parent, wxWindowID id, const wx
     LabelLocationNumber->Enable(false);
     LabelLocationNumber->Check(true);
 
+    LabelScaleBar = new wxMenuItem(DisplayLabelMenu, wxID_ANY, wxString(wxT("Show Scale Bar")), wxEmptyString, wxITEM_CHECK);
+    DisplayLabelMenu->Append(LabelScaleBar);
+
     m_menubar2->Append(DisplayLabelMenu, wxT("Label"));
 
     DisplaySelectMenu        = new wxMenu( );
@@ -169,6 +172,7 @@ DisplayFrameParent::DisplayFrameParent(wxWindow* parent, wxWindowID id, const wx
     DisplayFileMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnSaveTxtAsClick), this, SelectSaveTxtAs->GetId( ));
     DisplayFileMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnExitClick), this, DisplayExit->GetId( ));
     DisplayLabelMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnLocationNumberClick), this, LabelLocationNumber->GetId( ));
+    DisplayLabelMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnLabelScaleBarClick), this, LabelScaleBar->GetId( ));
     DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnImageSelectionModeClick), this, SelectImageSelectionMode->GetId( ));
     DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnCoordsSelectionModeClick), this, SelectCoordsSelectionMode->GetId( ));
     DisplaySelectMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(DisplayFrameParent::OnInvertSelectionClick), this, SelectInvertSelection->GetId( ));

@@ -71,6 +71,7 @@ class DisplayFrameParent : public wxFrame {
     wxMenuItem* DisplayExit;
     wxMenu*     DisplayLabelMenu;
     wxMenuItem* LabelLocationNumber;
+    wxMenuItem* LabelScaleBar;
     wxMenu*     DisplaySelectMenu;
     wxMenuItem* SelectImageSelectionMode;
     wxMenuItem* SelectCoordsSelectionMode;
@@ -109,6 +110,8 @@ class DisplayFrameParent : public wxFrame {
     virtual void OnExitClick(wxCommandEvent& event) { event.Skip( ); }
 
     virtual void OnLocationNumberClick(wxCommandEvent& event) { event.Skip( ); }
+
+    virtual void OnLabelScaleBarClick(wxCommandEvent& event) { event.Skip( ); }
 
     virtual void OnImageSelectionModeClick(wxCommandEvent& event) { event.Skip( ); }
 

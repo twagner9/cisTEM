@@ -369,6 +369,7 @@ class
     bool show_label;
     bool show_crosshair;
     bool single_image;
+    bool draw_scale_bar;
 
     bool txt_is_saved;
     bool have_txt_filename;

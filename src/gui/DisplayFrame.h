@@ -28,6 +28,7 @@ class DisplayFrame : public DisplayFrameParent {
 
     // Label menu
     void OnLocationNumberClick(wxCommandEvent& event);
+    void OnLabelScaleBarClick(wxCommandEvent& event);
 
     // Select menu
     void OnImageSelectionModeClick(wxCommandEvent& event);
@@ -58,6 +59,7 @@ class DisplayFrame : public DisplayFrameParent {
     bool     LoadImageSelections(wxString current_line);
     void     ClearTextFileFromPanel( );
     wxBitmap CropImageForSaving( );
+    void     DrawScaleBarOnBitmap(wxBitmap& target_bitmap);
 };
 
 #endif
