@@ -68,7 +68,6 @@ void DisplayServer::ServerLoop( ) {
             std::string filename = buffer.substr(start, pos - start);
             start                = pos + 1;
 
-
             if ( ! filename.empty( ) ) {
                 wxString       message = wxString::FromUTF8(filename.c_str( )).Trim( );
                 wxCommandEvent evt(EVT_SERVER_OPEN_FILE, 1000);
