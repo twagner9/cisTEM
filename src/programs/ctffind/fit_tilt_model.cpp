@@ -4,8 +4,9 @@ class
         FitTiltModel : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -473,3 +474,14 @@ void range_adjust_for_plot(std::vector<double>& theta_series, std::vector<double
         }
     }
 };
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> FitTiltModel::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"txt file containing ctffind tilt angle and axis direction", "second column is tilt angle and thrid column is axis direction", "TiltAngle_AxisDirction"});
+    params.push_back(MyApp::InteractiveParameter{"tlt file containing the raw tilt values", "one column storing tilt angle", "rawtlt.tlt"});
+    params.push_back(MyApp::InteractiveParameter{"axis direction ", "the axis direction of the microscope", "178.4"});
+    params.push_back(MyApp::InteractiveParameter{"path to the output files", "/outpath/", "/data/output/"});
+
+    return params;
+}

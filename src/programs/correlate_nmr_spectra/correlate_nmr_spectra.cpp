@@ -4,8 +4,9 @@ class
         CorrelateNMRSpectra : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -372,4 +373,28 @@ bool CorrelateNMRSpectra::DoCalculation( ) {
 
     // correlate NMR spectra by FSC *haven't done yet* - Colin
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CorrelateNMRSpectra::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input first NMR txt file", "Filename of first NMR txt file", "input.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Input second NMR txt file", "Filename of second NMR txt file", "input.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file 1 (no extension)", "Image 1, no extension because there are multiple versions", "output"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file 2 (no extension)", "Image 2, no extension because there are multiple versions", "output"});
+    params.push_back(MyApp::InteractiveParameter{"Crop spectra?", "Should the spectra be cropped?", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Remove diagonal from cropped spectra?", "set the diagonal equal to the average value of the image?", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Filter spectra?", "Should the spectra be filtered?", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"x-coordinate of box center, center of image is 0,0", "900 for CC2d", "0"});
+    params.push_back(MyApp::InteractiveParameter{"y-coordinate of box center, center of image is 0,0", "900 for CC2d", "0"});
+    params.push_back(MyApp::InteractiveParameter{"size of cropped box", "box size in pixels, 900 for CC2d", "0"});
+    params.push_back(MyApp::InteractiveParameter{"width of diagonal", "width size in pixels, around 20 for CC2d", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Filter type for first spectra: 1=highpass, 2=lowpass, 3=bandpass", "Highpass, Lowpass, or Bandpass", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Filter type for second spectra: 1=highpass, 2=lowpass, 3=bandpass", "Highpass, Lowpass, or Bandpass", "1"});
+    params.push_back(MyApp::InteractiveParameter{"First sigma value for first spectra", "distribution value from 0 to 0.5, for highpass side of bandpass", "0.25"});
+    params.push_back(MyApp::InteractiveParameter{"Second sigma value for first spectra", "for lowpass side of bandpass", "0.25"});
+    params.push_back(MyApp::InteractiveParameter{"First sigma value for second spectra", "distribution value from 0 to 0.5, for highpass side of bandpass", "0.25"});
+    params.push_back(MyApp::InteractiveParameter{"Second sigma value for second spectra", "for lowpass side of bandpass", "0.25"});
+
+    return params;
 }

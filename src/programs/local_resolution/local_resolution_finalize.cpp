@@ -4,8 +4,9 @@ class
         LocalResolutionFinalize : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -270,4 +271,15 @@ bool LocalResolutionFinalize::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> LocalResolutionFinalize::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"First input volume", "The first input 3D reconstruction used for FSC calculation. If more than one volumes are needed, make sure there is the suffix looks like _1.mrc", "my_reconstruction_1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Number of local res slices per volume", "Number of slices of the local resolution map present in each volume", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Sampling step", "How frequently the local resolution was estimated", "2"});
+    params.push_back(MyApp::InteractiveParameter{"Output volume", "Local resolution map volume", "local_resolution.mrc"});
+
+    return params;
 }

@@ -4,8 +4,9 @@ class
         ExtractParticlesApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -86,4 +87,15 @@ bool ExtractParticlesApp::DoCalculation( ) {
     delete input_coos_file;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ExtractParticlesApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input micrograph filename", "The input micrograph, in which we will look for particles", "micrograph.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Coordinates (PLT) filename", "The input particle coordinates, in Imagic-style PLT forlmat", "coos.plt"});
+    params.push_back(MyApp::InteractiveParameter{"Filename for output stack of particles.", "A stack of particles will be written to disk", "particles.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Box size for output candidate particle images (pixels)", "In pixels. Give 0 to skip writing particle images to disk.", "256"});
+
+    return params;
 }

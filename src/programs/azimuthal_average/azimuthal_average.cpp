@@ -13,8 +13,9 @@ class
         AzimuthalAverageNew : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -2808,4 +2809,34 @@ std::pair<int, int> FindOuterTubeEdges(const std::vector<float>& cols, float min
         std::swap(bestPairIdx.first, bestPairIdx.second);
 
     return std::make_pair(bestPairIdx.first, bestPairIdx.second);
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> AzimuthalAverage::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of stack to be added to", "input_stack1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Acceleration voltage (keV)", "Acceleration voltage, in keV", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Objective lens spherical aberration", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Fraction of total contrast attributed to amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Use a text file to input defocus values?", "If yes, a text file with one line per image is required", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"File containing defocus values", "should have 3 or 4 values per line", "my_defocus.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Underfocus 1 (A)", "In Angstroms, the objective lens underfocus along the first axis", "1.2"});
+    params.push_back(MyApp::InteractiveParameter{"Underfocus 2 (A)", "In Angstroms, the objective lens underfocus along the second axis", "1.2"});
+    params.push_back(MyApp::InteractiveParameter{"Astigmatism angle", "Angle between the first axis and the x axis of the image", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Additional phase shift (rad)", "Additional phase shift relative to undiffracted beam, as introduced for example by a phase plate", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Phase Flip Only", "If Yes, only phase flipping is performed", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Set Expert Options?", "Set these for more control, hopefully not needed", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Maximum number of iterations", "Alignment will stop at this number, even if the threshold shift is not reached", "5"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum shift for initial search (A)", "Initial search will be limited to between the inner and outer radii.", "2.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer radius shift limit (A)", "The maximum shift of each alignment step will be limited to this value.", "80.0"});
+    params.push_back(MyApp::InteractiveParameter{"Termination shift threshold (A)", "Alignment will iterate until the maximum shift is below this value", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum rotation for initial search (degrees)", "Initial search will be limited to between the inner and outer radii.", "-5.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer radius rotation limit (degrees)", "The maximum rotation of each alignment step will be limited to this value.", "5.0"});
+    params.push_back(MyApp::InteractiveParameter{"Rotation step size (degrees)", "The step size of each rotation will be limited to this value.", "0.25"});
+    params.push_back(MyApp::InteractiveParameter{"Termination rotation threshold (degrees)", "Alignment will iterate until the maximum rotation is below this value", "0.25"});
+    params.push_back(MyApp::InteractiveParameter{"B-factor to apply to images (A^2)", "This B-Factor will be used to filter the reference prior to alignment", "1500"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "when threading, what is the max threads to run", "1"});
+
+    return params;
 }

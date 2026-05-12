@@ -3,8 +3,9 @@
 class
         Merge3DApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -551,4 +552,21 @@ bool Merge3DApp::DoCalculation( ) {
 
     delete resolution_statistics;
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Merge3DApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Output reconstruction 1", "The first output 3D reconstruction, calculated form half the data", "my_reconstruction_1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output reconstruction 2", "The second output 3D reconstruction, calculated form half the data", "my_reconstruction_2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output filtered reconstruction", "The final 3D reconstruction, containing from all data and optimally filtered", "my_filtered_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output resolution statistics", "The text file with the resolution statistics for the final reconstruction", "my_statistics.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Molecular mass of particle (kDa)", "Total molecular mass of the particle to be reconstructed in kilo Daltons", "1000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Inner mask radius (A)", "Radius of a circular mask to be applied to the center of the final reconstruction in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer mask radius (A)", "Radius of a circular mask to be applied to the final reconstruction in Angstroms", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Seed for input dump filenames for odd particles", "The seed name of the first dump files with the intermediate reconstruction arrays", "dump_file_seed_1_.dat"});
+    params.push_back(MyApp::InteractiveParameter{"Seed for input dump filenames for even particles", "The seed name of the second dump files with the intermediate reconstruction arrays", "dump_file_seed_2_.dat"});
+    params.push_back(MyApp::InteractiveParameter{"Number of dump files", "The number of dump files that should be read from disk and merged", "1"});
+
+    return params;
 }

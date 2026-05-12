@@ -59,9 +59,10 @@ class
         CtffindApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
-    void AddCommandLineOptions( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    void                                     AddCommandLineOptions( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -1986,4 +1987,64 @@ bool CtffindApp::DoCalculation( ) {
 
     // Return
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CtffindApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input is a movie (stack of frames)", "Answer yes if the input file is a stack of frames from a dose-fractionated movie. If not, each image will be processed separately", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Number of frames to average together", "If the number of electrons per frame is too low, there may be strong artefacts in the estimated power spectrum. This can be alleviated by averaging frames with each other in real space before computing their Fourier transforms", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Output diagnostic image file name", "Will contain the experimental power spectrum and the best CTF fit", "diagnostic_output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size", "In Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Acceleration voltage", "in kV", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration", "in mm", "2.70"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Fraction of amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Size of amplitude spectrum to compute", "in pixels", "512"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum resolution", "Lowest resolution used for fitting CTF (Angstroms)", "30.0"});
+    params.push_back(MyApp::InteractiveParameter{"Maximum resolution", "Highest resolution used for fitting CTF (Angstroms)", "5.0"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum defocus", "Positive values for underfocus. Lowest value to search over (Angstroms)", "5000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Maximum defocus", "Positive values for underfocus. Highest value to search over (Angstroms)", "50000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus search step", "Step size for defocus search (Angstroms)", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Do you know what astigmatism is present?", "Answer yes if you already know how much astigmatism was present. If you answer no, the program will search for the astigmatism and astigmatism angle", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Slower, more exhaustive search?", "Answer yes to use a slower exhaustive search against 2D spectra (rather than 1D radial averages) for the initial search", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Known astigmatism", "In Angstroms, the amount of astigmatism, defined as the difference between the defocus along the major and minor axes", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Known astigmatism angle", "In degrees, the angle of astigmatism", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Slower, more exhaustive search?", "Answer yes if you expect very high astigmatism (say, greater than 1000A) or in tricky cases. In that case, a slower exhaustive search against 2D spectra (rather than 1D radial averages) will be used for the initial search", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Use a restraint on astigmatism?", "If you answer yes, the CTF parameter search and refinement will penalise large astigmatism. You will specify the astigmatism tolerance in the next question. If you answer no, no such restraint will apply", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Expected (tolerated) astigmatism", "Astigmatism values much larger than this will be penalised (Angstroms). Give a negative value to turn off this restraint.", "200.0"});
+    params.push_back(MyApp::InteractiveParameter{"Find additional phase shift?", "Input micrograph was recorded using a phase plate with variable phase shift, which you want to find", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum phase shift (rad)", "Lower bound of the search for additional phase shift. Phase shift is of scattered electrons relative to unscattered electrons. In radians", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Maximum phase shift (rad)", "Upper bound of the search for additional phase shift. Phase shift is of scattered electrons relative to unscattered electrons. In radians", "3.15"});
+    params.push_back(MyApp::InteractiveParameter{"Phase shift search step", "Step size for phase shift search (radians)", "0.5"});
+    params.push_back(MyApp::InteractiveParameter{"Determine sample tilt?", "Answer yes if you tilted the sample and need to determine tilt axis and angle", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Determine samnple thickness?", "Answer yes if you want to fit nodes to the CTF", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Use brute force 1D search?", "Answer yes if you want to use a brute force 1D search for the nodes", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Use 2D refinement?", "Answer yes if you want to use a 2D refinement for the nodes", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Low resolution limit for nodes", "In Angstroms, the low resolution limit for the nodes", "30.0"});
+    params.push_back(MyApp::InteractiveParameter{"High resolution limit for nodes", "In Angstroms, the high resolution limit for the nodes", "3.0"});
+    params.push_back(MyApp::InteractiveParameter{"Use rounded square for nodes?", "Answer yes if you want to use a rounded square for the nodes", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Downweight nodes?", "Answer yes if you want to downweight nodes", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Do you want to set expert options?", "There are options which normally not changed, but can be accessed by answering yes here", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Resample micrograph if pixel size too small?", "When the pixel is too small, Thon rings appear very thin and near the origin of the spectrum, which can lead to suboptimal fitting. This options resamples micrographs to a more reasonable pixel size if needed", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Target pixel size after resampling", "In Angstroms. The pixel size to resample to if the input pixel size is too small", "1.4"});
+    params.push_back(MyApp::InteractiveParameter{"Movie is dark-subtracted?", "If the movie is not dark-subtracted you will need to provide a dark reference image", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Dark image filename", "The filename of the dark reference image for the detector/camera", "dark.dm4"});
+    params.push_back(MyApp::InteractiveParameter{"Movie is gain-corrected?", "If the movie is not gain-corrected, you will need to provide a gain reference image", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Gain image filename", "The filename of the gain reference image for the detector/camera", "gain.dm4"});
+    params.push_back(MyApp::InteractiveParameter{"Correct Movie Mag. Distortion?", "If the movie has a mag distortion you can specify the parameters to correct it prior to estimation", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Mag. distortion angle", "The angle of the distortion", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Mag. distortion major scale", "The scale factor along the major axis", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Mag. distortion minor scale", "The scale factor along the minor axis", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Number of EER frames per image", "If the input movie is in EER format, we will average EER frames together so that each frame image for alignment has a reasonable exposure", "25"});
+    params.push_back(MyApp::InteractiveParameter{"EER super resolution factor", "Choose between 1 (no supersampling), 2, or 4 (image pixel size will be 4 times smaller that the camera phyiscal pixel)", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Do you already know the defocus?", "Answer yes if you already know the defocus and you just want to know the score or fit resolution. If you answer yes, the known astigmatism parameter specified eariler will be ignored", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Known defocus 1", "In Angstroms, the defocus along the first axis", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Known defocus 2", "In Angstroms, the defocus along the second axis", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Known astigmatism angle", "In degrees, the angle of astigmatism", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Known phase shift (radians)", "In radians, the phase shift (from a phase plate presumably)", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Weight down low resolution signal?", "Answer yes if you want to filter out low-resolution signal", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Desired number of parallel threads", "The command-line option -j will override this", "1"});
+
+    return params;
 }

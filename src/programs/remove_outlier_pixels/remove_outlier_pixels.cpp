@@ -4,8 +4,9 @@ class
         NikoTestApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -56,4 +57,15 @@ bool NikoTestApp::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> NikoTestApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Number of standard deviations", "Pixels more than this number of standard deviations above or below the mean will be reset to the mean", "6.0"});
+    params.push_back(MyApp::InteractiveParameter{"Also zero-float and normalize?", "After outlier pixels have been removed, zero-float and normalize images", "no"});
+
+    return params;
 }

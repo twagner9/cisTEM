@@ -3,8 +3,9 @@
 class
         MoveVolumeXYZApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -92,4 +93,19 @@ bool MoveVolumeXYZApp::DoCalculation( ) {
     output_file->SetPixelSize(input_pixel_size);
     delete output_file;
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MoveVolumeXYZApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input volume", "The volume you want to align", "my_volume.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output moved volume", "The volume that has been moved", "my_volume_move.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"X-Rotation (degrees)", "wanted X rotation in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Y-Rotation (degrees)", "wanted Y rotation in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Z-Rotation (degrees)", "wanted Z rotation in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"X-Shift (pixels)", "wanted X shift in pixels", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Y-Shift (pixels)", "wanted Y shift in pixels", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Z-Shift (pixels)", "wanted Z shift in pixels", "0.0"});
+
+    return params;
 }

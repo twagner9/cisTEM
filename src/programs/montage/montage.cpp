@@ -4,8 +4,9 @@ class
         MontageApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -122,4 +123,16 @@ bool MontageApp::DoCalculation( ) {
     montage.WriteSlice(&output_montage, 1);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MontageApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input stack file name", "Filename of input stack.", "input_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output montage file name", "Filename of output montage.", "montage.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Overlap", "Overlap in pixels between images in montage", "5"});
+    params.push_back(MyApp::InteractiveParameter{"Number of pieces in X", "Number of images to be stitched together in the X dimension", "5"});
+    params.push_back(MyApp::InteractiveParameter{"Number of pieces in Y", "Number of images to be stitched together in the Y dimension", "5"});
+
+    return params;
 }

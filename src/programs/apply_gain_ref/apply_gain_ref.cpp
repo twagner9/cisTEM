@@ -4,8 +4,9 @@ class
         ApplyGainRef : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -127,4 +128,22 @@ bool ApplyGainRef::DoCalculation( ) {
     wxPrintf("\n\nApply Gain finished cleanly!\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ApplyGainRef::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output corrected image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input gain ref file", "Filename of gain reference", "gain.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Also do dark correction?", "if yes, you can provide a dark image to be subtracted", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Input dark ref file", "Filename of dark reference", "dark.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Resample the output?", "if yes, you can resample the output", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted New X-Size", "The image will be Fourier cropped to this size", "3838"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted New Y-Size", "The image will be Fourier cropped to this size", "3710"});
+    params.push_back(MyApp::InteractiveParameter{"Remove outlier pixels?", "If yes, outlier pixels will be removed AFTER gain correction, but prior to resampling", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Number of standard deviations", "Pixels more than this number of standard deviations above or below the mean will be reset to the mean", "12.0"});
+    params.push_back(MyApp::InteractiveParameter{"Also zero-float and normalize?", "After outlier pixels have been removed, zero-float and normalize images", "no"});
+
+    return params;
 }

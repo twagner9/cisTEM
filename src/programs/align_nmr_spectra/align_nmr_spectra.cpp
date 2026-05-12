@@ -4,8 +4,9 @@ class
         AlignNMR : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -365,4 +366,14 @@ bool AlignNMR::DoCalculation( ) {
     wxPrintf("\nShift Corrected for Origin Offset = %.4f, %.4f PPM\n", corrected_shift_x_ppm, corrected_shift_y_ppm);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> AlignNMR::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input Spectrum 1 ft2 filename", "Filename of input ft2 file", "spectra1.ft2"});
+    params.push_back(MyApp::InteractiveParameter{"Input Spectrum 2 ft2 filename", "Filename of input ft2 file", "spectra2.ft2"});
+    params.push_back(MyApp::InteractiveParameter{"Output shifted_spectrum.mrc", "Filename of output spectrum", "output.mrc"});
+
+    return params;
 }

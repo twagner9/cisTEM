@@ -20,13 +20,14 @@ class
         QuickTestApp : public MyApp {
 
   public:
-    bool     DoCalculation( );
-    void     DoInteractiveUserInput( );
-    void     AddCommandLineOptions( );
-    wxString symmetry_symbol;
-    bool     my_test_1 = false;
-    bool     my_test_2 = true;
-    int      idx;
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    void                                     AddCommandLineOptions( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
+    wxString                                 symmetry_symbol;
+    bool                                     my_test_1 = false;
+    bool                                     my_test_2 = true;
+    int                                      idx;
 
     std::array<wxString, 2> input_starfile_filename;
 
@@ -69,4 +70,14 @@ bool QuickTestApp::DoCalculation( ) {
 #endif
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> QuickTestApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Index", "", ""});
+    params.push_back(MyApp::InteractiveParameter{"Input starfile filename 1", "", ""});
+    params.push_back(MyApp::InteractiveParameter{"Input starfile filename 2", "", ""});
+
+    return params;
 }

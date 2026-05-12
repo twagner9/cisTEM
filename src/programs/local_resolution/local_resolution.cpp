@@ -4,8 +4,9 @@ class
         LocalResolution : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -133,4 +134,29 @@ bool LocalResolution::DoCalculation( ) {
     delete estimator;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> LocalResolution::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction 1", "The first input 3D reconstruction used for FSC calculation", "my_reconstruction_1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction 2", "The second input 3D reconstruction used for FSC calculation", "my_reconstruction_2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask", "Positions where this mask volume has value 0.00 will be skipped during local resolution estimation", "my_mask.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output local resolution volume", "This volume will be a local resolution estimate map", "local_resolution.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size (A)", "Pixel size of the map in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"First slice", "First slice within the volume to estimate local resolution", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last slice", "Last slice within the volume to estimate local resolution (0 = last slice of volume)", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Sampling step", "Estimate the local resolution every STEP pixels in each direction. Set to 1 to estimate the resolution at every voxel", "2"});
+    params.push_back(MyApp::InteractiveParameter{"Box size", "In pixels, the size of the small cubic box used to compute the local FSC", "20"});
+    params.push_back(MyApp::InteractiveParameter{"Use a fixed FSC threshold?", "You can specify the value of the FSC threshold in the next question", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Fixed FSC threshold", "Commonly used values: 0.143", "0.5"});
+    params.push_back(MyApp::InteractiveParameter{"Threshold half-map SNR", "FSC value must correspond to at least this SNR. FSC=0.143 corresponds to SNR=0.167.", "0.167"});
+    params.push_back(MyApp::InteractiveParameter{"Confidence level", "In numbers of standard deviations of the SNR estimator", "3.0"});
+    params.push_back(MyApp::InteractiveParameter{"Set experimental options?", "Several experimental options are available", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Randomize input phases?", "The phases of the input halfmaps can be randomized beyond a chosen resolution before local volumes are extracted for FSC calculation", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Resolution for phase randomization", "Phases of the input half maps will be randomized at resolutions higher than the given resolution", "20.0"});
+    params.push_back(MyApp::InteractiveParameter{"Whiten half-maps on input", "Whitening the half-maps helps obtain more localized resolution estimates", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Padding factor", "Give 1 if you don't want any padding", "2"});
+
+    return params;
 }

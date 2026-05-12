@@ -3,8 +3,9 @@
 class
         SubtractFromStackApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -270,4 +271,25 @@ bool SubtractFromStackApp::DoCalculation( ) {
     wxPrintf("\nSubtractFromStack: Normal termination\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SubtractFromStackApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle images", "The input image stack, containing the experimental particle images", "my_image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input Frealign parameter filename", "The input parameter file, containing your particle alignment parameters", "my_parameters.par"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction", "The 3D reconstruction from which projections are calculated", "my_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input data statistics", "The table listing FSC, Part_FSC, Part_SSNR and Rec_SSNR", "my_statistics.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Use statistics", "Answer No if no statistics are available?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Output stack of subtracted images", "The output image stack, containing the matching projections", "subtracted_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Use Least Squares Scaling", "Answer yes to scale per particle.", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Mask Radius for scaling (A)", "Only consider within this radius for scaling", "100"});
+    params.push_back(MyApp::InteractiveParameter{"First particle to process", "first particle to process", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last  particle to process (0 = last in stack)", "last particle to process", "0"});
+
+    return params;
 }

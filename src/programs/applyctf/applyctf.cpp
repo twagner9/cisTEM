@@ -4,8 +4,9 @@ class
         ApplyCTFApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -207,4 +208,30 @@ bool ApplyCTFApp::DoCalculation( ) {
     delete my_progress_bar;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ApplyCTFApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image filename", "The input file, containing one or more images in a stack", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output filename", "The output file", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Acceleration voltage (keV)", "Acceleration voltage, in keV", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Objective lens spherical aberration", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Fraction of total contrast attributed to amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Use a text file to input defocus values?", "If yes, a text file with one line per image is required", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"File containing defocus values", "should have 3 or 4 values per line", "my_defocus.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Underfocus 1 (A)", "In Angstroms, the objective lens underfocus along the first axis", "1.2"});
+    params.push_back(MyApp::InteractiveParameter{"Underfocus 2 (A)", "In Angstroms, the objective lens underfocus along the second axis", "1.2"});
+    params.push_back(MyApp::InteractiveParameter{"Astigmatism angle", "Angle between the first axis and the x axis of the image", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Additional phase shift (rad)", "Additional phase shift relative to undiffracted beam, as introduced for example by a phase plate", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Phase Flip Only", "If Yes, only phase flipping is performed", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Apply Wiener Filter", "If Yes, apply Wiener filter as suggested by Tegunov, et.al.", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"SSNR Falloff frequency", "In Angstromsm, the frequency at which SSNR falls off", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"SSNR Falloff speed", "How fast does SSNR fall off", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Deconvolution strength", "Strength of the deconvolution", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Highpass filter frequency", "In Angstromsm, the frequency at which to cutoff low freq signal", "200.0"});
+    params.push_back(MyApp::InteractiveParameter{"Maintain image contrast", "If Yes, contrast is the same as image", "NO"});
+
+    return params;
 }

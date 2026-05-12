@@ -4,8 +4,9 @@ class
         MakeSizeMap : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -57,4 +58,14 @@ bool MakeSizeMap::DoCalculation( ) {
     my_size_map.WriteSlices(&output_file, 1, my_size_map.logical_z_dimension);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MakeSizeMap::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input Volume file name", "Name of input image volume", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output Size Map file name", "Name of output size map volume ", "my_size_map.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Binarisation threshold?", "The volume will first be binarised at this threshold", "0.01"});
+
+    return params;
 }

@@ -4,8 +4,9 @@ class
         MeasureTemplateBiasApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -209,4 +210,17 @@ bool MeasureTemplateBiasApp::DoCalculation( ) {
     wxPrintf("\n\nMeasureTemplateBias: Normal termination\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MeasureTemplateBiasApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input template diff map?", "If No, the difference map will be calculated from the full and omit templates", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Input diff template", "The difference map, full - omit template", "diff_template.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input full template", "The 3D map of the full template", "full_template.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input omit template", "The 3D map of the omit template", "omit_template.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction full template", "The 3D reconstruction calculated from targets found with the full template", "reconstruction_full_template.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction omit template", "The 3D reconstruction calculated from targets found with the omit template", "reconstruction_omit_template.mrc"});
+
+    return params;
 }

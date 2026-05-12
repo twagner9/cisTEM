@@ -4,8 +4,9 @@ class
         PrintStackStatistics : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -67,4 +68,12 @@ bool PrintStackStatistics::DoCalculation( ) {
     wxPrintf("\n  Average:\t%f\t%f\t%f\t%f\n\n\n", average_min / my_input_file_one.ReturnNumberOfSlices( ), average_max / my_input_file_one.ReturnNumberOfSlices( ), average_average / my_input_file_one.ReturnNumberOfSlices( ), average_sigma / my_input_file_one.ReturnNumberOfSlices( ));
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> PrintStackStatistics::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of stack to print statistics for", "input_stack1.mrc"});
+
+    return params;
 }

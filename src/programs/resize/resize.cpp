@@ -4,8 +4,9 @@ class
         Resize : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -94,4 +95,18 @@ bool Resize::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Resize::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Is the input a volume", "Yes if it is a 3D", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"New X-Size", "Wanted new X size", "100"});
+    params.push_back(MyApp::InteractiveParameter{"New Y-Size", "Wanted new Y size", "100"});
+    params.push_back(MyApp::InteractiveParameter{"New Z-Size", "Wanted new Z size", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Normalize and Zero-float Input?", "If yes, images will also be normalized and zero floated", "NO"});
+
+    return params;
 }

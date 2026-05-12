@@ -4,8 +4,9 @@ class
         MakeOrthViews : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -48,4 +49,13 @@ bool MakeOrthViews::DoCalculation( ) {
     my_orth_views_image.WriteSlice(&output_file, 1);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MakeOrthViews::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image/volume file name", "Name of input image volume", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output orth views image file name", "Name of output image ", "orth.mrc"});
+
+    return params;
 }

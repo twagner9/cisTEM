@@ -4,15 +4,16 @@ class
         WarpToCistemApp : public MyApp {
 
   public:
-    bool                          DoCalculation( );
-    bool                          GetSettingsFromWarp(wxXmlDocument warp_settings_doc, wxString& boxnet_name, double& warp_picking_radius, double& warp_picking_threshold, double& warp_minimum_distance_from_exclusions);
-    MovieAsset                    LoadMovieFromWarp(wxXmlDocument warp_doc, wxString warp_folder, wxString movie_filename, unsigned long count, float wanted_binned_pixel_size);
-    ImageAsset                    LoadImageFromWarp(wxString image_filename, unsigned long parent_asset_id, double parent_voltage, double parent_cs, bool parent_are_white);
-    ArrayOfParticlePositionAssets LoadParticlePositionsFromWarp(wxString star_filename, ImageAsset new_image_asset, int starting_id);
-    CTF                           LoadCTFFromWarp(wxXmlDocument warp_doc, float pixel_size, float voltage, float spherical_aberration, wxString wanted_avrot_filename);
-    RefinementPackage*            LoadRefinementPackageFromLive2D(wxString star_filename, wxString stack_filename, double pixel_size, double particle_mass, double voltage, double spherical_aberration, double amplitude_contrast, double picking_radius, Database& database, MovieAssetList& movie_list, Refinement& refinement);
-    ArrayofClassifications        LoadClassificationsFromLive2D(wxString live_2d_path, wxString latest_settings_filename);
-    void                          DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    bool                                     GetSettingsFromWarp(wxXmlDocument warp_settings_doc, wxString& boxnet_name, double& warp_picking_radius, double& warp_picking_threshold, double& warp_minimum_distance_from_exclusions);
+    MovieAsset                               LoadMovieFromWarp(wxXmlDocument warp_doc, wxString warp_folder, wxString movie_filename, unsigned long count, float wanted_binned_pixel_size);
+    ImageAsset                               LoadImageFromWarp(wxString image_filename, unsigned long parent_asset_id, double parent_voltage, double parent_cs, bool parent_are_white);
+    ArrayOfParticlePositionAssets            LoadParticlePositionsFromWarp(wxString star_filename, ImageAsset new_image_asset, int starting_id);
+    CTF                                      LoadCTFFromWarp(wxXmlDocument warp_doc, float pixel_size, float voltage, float spherical_aberration, wxString wanted_avrot_filename);
+    RefinementPackage*                       LoadRefinementPackageFromLive2D(wxString star_filename, wxString stack_filename, double pixel_size, double particle_mass, double voltage, double spherical_aberration, double amplitude_contrast, double picking_radius, Database& database, MovieAssetList& movie_list, Refinement& refinement);
+    ArrayofClassifications                   LoadClassificationsFromLive2D(wxString live_2d_path, wxString latest_settings_filename);
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
     wxString warp_directory;
     wxString cistem_parent_directory;
@@ -1093,4 +1094,23 @@ bool WarpToCistemApp::DoCalculation( ) {
 
     wxPrintf("\ncisTEM project ready to be loaded by GUI.\n");
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> WarpToCistemApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input Warp Directory", "The folder in which Warp processed movies", "./Data"});
+    params.push_back(MyApp::InteractiveParameter{"Cistem Project Parent Directory", "The parent directory for the new cistem project", "~/"});
+    params.push_back(MyApp::InteractiveParameter{"Project Name", "Name for new cisTEM2 project", "New_Project"});
+    params.push_back(MyApp::InteractiveParameter{"Binned Pixel Size", "Pixel size to resample movies to after import.", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Import Images?", "Should we import aligned averaged images from WARP (using a different motion correction system than cisTEM)?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Generate Scaled Images and Spectra?", "Should we make scaled images and spectra? Scaled images are very slow to generate but accelerate normal cisTEM operations", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Import CTF Estimates?", "Should we import results of CTF estimation from Warp?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Import Particle Coordinates?", "Should we import coordinates of particles picked by WARP (using BoxNet)?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Import Refinement Package from Live2D?", "Should we import the refinement package used by Live2D for classification?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Input Live2D Directory", "The folder in which live2d output combined stacks and classification results.", "./Live2D"});
+    params.push_back(MyApp::InteractiveParameter{"Approximate Particle Mass (kDa)", "The approximate molar mass of the boxes particles", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Import Classification Results from Live2D?", "Should we import 2D Classification results from Live2D?", "No"});
+
+    return params;
 }

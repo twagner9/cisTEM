@@ -5,8 +5,9 @@ class
         ConvertTIF2MRC : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -58,4 +59,13 @@ bool ConvertTIF2MRC::DoCalculation( ) {
     delete my_progress;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ConvertTIF2MRC::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input TIF file name", "Filename of input TIF image", "input.tif"});
+    params.push_back(MyApp::InteractiveParameter{"Output MRC file name", "Filename of output MRC image", "output.mrc"});
+
+    return params;
 }

@@ -3,8 +3,9 @@
 class
         RefineTemplateDevApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -1197,4 +1198,56 @@ bool RefineTemplateDevApp::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> RefineTemplateDevApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input images to be searched", "The input image stack, containing the images that should be searched", "image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input template reconstruction", "The 3D reconstruction from which projections are calculated", "reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input MIP file", "The file with the maximum intensity projection image", "mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input scaled MIP file", "The file with the scaled MIP (peak search done on this image)", "scaled_mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input psi file", "The file with the best psi image", "psi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input theta file", "The file with the best psi image", "theta.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input phi file", "The file with the best psi image", "phi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input defocus file", "The file with the best defocus image", "defocus.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input pixel size file", "The file with the best pixel size image", "pixel_size.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output MIP file", "The file for saving the maximum intensity projection image", "out_mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output Scaled MIP file", "The file for saving the maximum intensity projection image divided by correlation variance", "out_scaled_mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output psi file", "The file for saving the best psi image", "out_psi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output theta file", "The file for saving the best psi image", "out_theta.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output phi file", "The file for saving the best psi image", "out_phi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output defocus file", "The file for saving the best defocus image", "out_defocus.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output pixel size file", "The file for saving the best pixel size image", "out_pixel_size.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Peak threshold", "Peaks over this size will be taken", "7.5"});
+    params.push_back(MyApp::InteractiveParameter{"Min peak radius (px.)", "Essentially the minimum closeness for peaks", "10.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus1 (angstroms)", "Defocus1 for the input image", "10000"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus2 (angstroms)", "Defocus2 for the input image", "10000"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus angle (degrees)", "Defocus Angle for the input image", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Phase shift (degrees)", "Additional phase shift in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low resolution limit (A)", "Low resolution limit of the data used for alignment in Angstroms", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"High resolution limit (A)", "High resolution limit of the data used for alignment in Angstroms", "8.0"});
+    params.push_back(MyApp::InteractiveParameter{"Angular refinement range", "AAngular range to refine", "2.0"});
+    params.push_back(MyApp::InteractiveParameter{"Out of plane angular step", "Angular step size for global grid search", "0.2"});
+    params.push_back(MyApp::InteractiveParameter{"In plane angular step", "Angular step size for in-plane rotations during the search", "0.1"});
+    params.push_back(MyApp::InteractiveParameter{"Number of top hits to refine", "The number of best global search orientations to refine locally", "20"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus search range (A) (0.0 = no search)", "Search range (-value ... + value) around current defocus", "200.0"});
+    params.push_back(MyApp::InteractiveParameter{"Desired defocus accuracy (A)", "Accuracy to be achieved in defocus search", "10.0"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus refine step (A) (0.0 = no refinement)", "Step size used in the defocus refinement", "5.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size search range (A) (0.0 = no search)", "Search range (-value ... + value) around current pixel size", "0.1"});
+    params.push_back(MyApp::InteractiveParameter{"Desired pixel size accuracy (A)", "Accuracy to be achieved in pixel size search", "0.01"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size refine step (A) (0.0 = no refinement)", "Step size used in the pixel size refinement", "0.001"});
+    params.push_back(MyApp::InteractiveParameter{"Padding factor", "Factor determining how much the input volume is padded to improve projections", "2.0"});
+    params.push_back(MyApp::InteractiveParameter{"Refine defocus", "Should the particle defocus be refined?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Mask radius (A) (0.0 = no mask)", "Radius of a circular mask to be applied to the input particles during refinement", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Moved peak warning (A)", "Threshold for displaying warning of peak location changes during refinement", "10.0"});
+    params.push_back(MyApp::InteractiveParameter{"Exclude moving peaks", "Should the peaks that move more than the threshold be excluded from the output MIPs?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Result number to refine", "If input files contain results from several searches, which one should be refined?", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "When threading, what is the max threads to run", "1"});
+
+    return params;
 }

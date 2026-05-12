@@ -6,8 +6,9 @@ class
         CombineStack : public MyApp {
 
   public:
-    void DoInteractiveUserInput( );
-    bool DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -81,4 +82,13 @@ bool CombineStack::DoCalculation( ) {
     output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CombineStack::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input Star File", "required star file", "starFile.star"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "the combined result", "output.mrc"});
+
+    return params;
 }

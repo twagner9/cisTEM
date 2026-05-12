@@ -4,8 +4,9 @@ class
         SharpenMap : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -123,4 +124,28 @@ bool SharpenMap::DoCalculation( ) {
         delete input_statistics;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SharpenMap::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input volume file name", "Name of input image file", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output sharpened volume file name", "Name of sharpened output volume", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask file name", "Name of input image file", "mask.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction statistics", "The table listing FSC, Part_FSC, Part_SSNR and Rec_SSNR", "my_statistics.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Use statistics", "Answer No if no statistics are available?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size (A)", "Pixel size of the map in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Inner mask radius (A)", "Inner radius of mask to be applied to the input map, in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer mask radius (A)", "Outer radius of mask to be applied to the input map, in Angstroms", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low-res B-Factor (A^2)", "B-factor to be applied to the non-flattened part of the amplitude spectrum, in Angstroms squared", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"High-res B-Factor (A^2)", "B-factor to be applied to the flattened part of the amplitude spectrum, in Angstroms squared", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low resolution limit for spectral flattening (A)", "The resolution at which spectral flattening starts being applied, in Angstroms", "8.0"});
+    params.push_back(MyApp::InteractiveParameter{"High resolution limit (A)", "Resolution of low-pass filter applied to final output maps, in Angstroms", "3.0"});
+    params.push_back(MyApp::InteractiveParameter{"Filter edge width (A)", "Cosine edge used with the low-pass filter, in Angstroms", "20.0"});
+    params.push_back(MyApp::InteractiveParameter{"Part_SSNR scale factor", "Scale the Part_SSNR curve to account for disordered regions in the map", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Statistics curve scale factor", "Resample the Part_FSC curve to extend or limit resolution", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Use 3D mask", "Should the 3D mask be used to mask the input map before sharpening?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Invert handedness", "Should the map handedness be inverted?", "No"});
+
+    return params;
 }

@@ -4,8 +4,9 @@ class
         FindParticlesApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 };
 
 IMPLEMENT_APP(FindParticlesApp)
@@ -193,4 +194,40 @@ bool FindParticlesApp::DoCalculation( ) {
         delete[] result_array;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> FindParticlesApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input micrograph filename", "The input micrograph, in which we will look for particles", "micrograph.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Micrograph pixel size", "In Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Acceleration voltage", "In keV", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration", "In mm", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "As a fraction, e.g. 0.07 is 7%", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Additional phase shift", "In radians. For example due to a phase plate", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Micrograph defocus 1", "In Angstroms. For underfocus, give a positive value.", "15000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Micrograph defocus 2", "In Angstroms. For underfocus, give a positive value.", "15000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Micrograph astigmatism angle", "In degrees, following CTFFIND convention", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Would you like to supply templates?", "Say yes here if you already have a template or templates to use as references for picking, for example projections from an existing 3D reconstruction", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Input templates filename", "Set of templates to use in the search. Must have same pixel size as the micrograph", "templates.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Should the templates be radially averaged?", "Say yes if the templates should be rotationally averaged", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Would you like to also search for rotated versions of the templates?", "If you answer yes, each template image will be rotated a number of times (see next question) and the micrograph will be searched for the rotated template", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Number of in-plane rotations", "Give 1 to only correlate against the templates as given. Give 2 to also correlate against a 180-degree-rotated version. Etc.", "36"});
+    params.push_back(MyApp::InteractiveParameter{"Typical radius of particles (in Angstroms)", "An estimate of the typical or average radius of the particles to be found. This will be used to generate a featureless disc as a template.", "25.0"});
+    params.push_back(MyApp::InteractiveParameter{"Maximum radius of the particle (in Angstroms)", "The maximum radius of the templates, in angstroms", "32.0"});
+    params.push_back(MyApp::InteractiveParameter{"Highest resolution to use for picking", "In Angstroms. Data at higher resolutions will be ignored in the picking process", "15.0"});
+    params.push_back(MyApp::InteractiveParameter{"Filename for output stack of candidate particles.", "A stack of candidate particles will be written to disk", "candidate_particles.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Box size for output candidate particle images (pixels)", "In pixels. Give 0 to skip writing particle images to disk.", "256"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum distance from edge (pixels)", "In pixels, the minimum distance between the center of a box and the edge of the micrograph", "129"});
+    params.push_back(MyApp::InteractiveParameter{"Picking threshold", "The minimum peak height for candidate particles. In numbers of background noise standard deviations. Typically in the 3.0 to 15.0 range. For micrographs with good contrast, give higher values to avoid spurious peaks.", "8.0"});
+    params.push_back(MyApp::InteractiveParameter{"Avoid low variance areas?", "Areas with low local variance should be avoided. This often works well to avoid false positive picks in empty areas.", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Avoid high variance areas?", "Areas with abnormally high local variance should be avoided. This often works well to avoid the edges of support film, ice crystals etc.", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Low variance threshold", "When the local variance is below this threshold, no particles can be found. Expressed in numbers of FWHM above the mode of the local variance in the image. A negative number indicates a local variance below the mode", "-1.0"});
+    params.push_back(MyApp::InteractiveParameter{"High variance threshold", "When the local variance is above this threshold, no particles can be found. Expressed in numbers of FWHM above the mode of the local variance in the image.", "2.0"});
+    params.push_back(MyApp::InteractiveParameter{"Avoid areas with abnormal local mean?", "Areas with abnormal local mean are can be avoided. This often works well to avoid ice crystals, for example.", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Algorithm to find background areas (0 or 1)", "0: lowest variance; 1: variance near mode", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Number of background boxes", "This number of boxes will be extracted from the micrographs in areas devoid of particles or other features, to compute the background amplitude spectrum", "50"});
+    params.push_back(MyApp::InteractiveParameter{"Particles are white on a dark background", "Answer yes here if contrast is inverted, i.e. particles have higher densities than the background", "no"});
+
+    return params;
 }

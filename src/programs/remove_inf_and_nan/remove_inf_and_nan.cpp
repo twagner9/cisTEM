@@ -5,8 +5,9 @@ class
         RemoveINFandNAN : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -74,4 +75,13 @@ bool RemoveINFandNAN::DoCalculation( ) {
     wxPrintf("\n\n%li Images contained inf or nan\n\n", images_with_inf_or_nan);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> RemoveINFandNAN::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output MRC file name", "Filename of output image which should have no infs or nans", "output.mrc"});
+
+    return params;
 }

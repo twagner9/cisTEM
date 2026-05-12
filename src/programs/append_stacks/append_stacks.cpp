@@ -4,8 +4,9 @@ class
         AppendStacks : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -62,4 +63,13 @@ bool AppendStacks::DoCalculation( ) {
     wxPrintf("\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> AppendStacks::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #1", "Filename of stack to be appended to", "input_stack1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #2", "Filename of stack to be append", "input_stack2.mrc"});
+
+    return params;
 }

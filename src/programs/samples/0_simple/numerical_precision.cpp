@@ -5,11 +5,12 @@ class
         QuickTestApp : public MyApp {
 
   public:
-    bool     DoCalculation( );
-    void     DoInteractiveUserInput( );
-    wxString symmetry_symbol;
-    bool     my_test_1 = false;
-    bool     my_test_2 = true;
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
+    wxString                                 symmetry_symbol;
+    bool                                     my_test_1 = false;
+    bool                                     my_test_2 = true;
 
     std::array<wxString, 2> input_starfile_filename;
 
@@ -150,4 +151,13 @@ bool QuickTestApp::DoCalculation( ) {
     std::cerr << "Mean and variance for Kahan: " << mean_k / n_loops << " " << var_k / n_loops << " error : " << 100. * (var_k / n_loops - var_d / n_loops) / var_d / n_loops << std::endl;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> QuickTestApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input starfile filename 1", "", ""});
+    params.push_back(MyApp::InteractiveParameter{"Input starfile filename 2", "", ""});
+
+    return params;
 }

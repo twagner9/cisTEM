@@ -3,8 +3,9 @@
 class
         CalcOccApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -198,4 +199,15 @@ bool CalcOccApp::DoCalculation( ) {
 	*/
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CalcOccApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Number of parameter files (0 = all)", "The number of parameter files to process; enter 0 to read all that match the seed", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Occupancy change multiplier", "The change in occupancies from the input files will be multiplied by this number", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Seed for input parameter filenames", "The string common to the names of the input parameter files to be processed", "my_input_1_r.par"});
+    params.push_back(MyApp::InteractiveParameter{"Seed for output parameter filenames", "The string common to the names of the output parameter files", "my_output_1_r.par"});
+
+    return params;
 }

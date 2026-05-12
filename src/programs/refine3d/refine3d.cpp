@@ -3,8 +3,9 @@
 class
         Refine3DApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -1690,4 +1691,65 @@ bool Refine3DApp::DoCalculation( ) {
     wxPrintf("\nRefine3D: Normal termination\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Refine3DApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle images", "The input image stack, containing the experimental particle images", "my_image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input cisTEM star file", "The input star file, containing your particle alignment parameters", "my_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction", "The 3D reconstruction from which projections are calculated", "my_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input data statistics", "The table listing FSC, Part_FSC, Part_SSNR and Rec_SSNR", "my_statistics.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Use statistics", "Answer No if no statistics are available?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Output matching projections", "The output image stack, containing the matching projections", "my_projection_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output cisTEM star file", "The output star file, containing your refined particle alignment parameters", "my_refined_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"Output parameter changes", "The changes in the alignment parameters compared to the input parameters", "my_parameter_changes.star"});
+    params.push_back(MyApp::InteractiveParameter{"First particle to refine (0 = first in stack)", "The first particle in the stack that should be refined", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last particle to refine (0 = last in stack)", "The last particle in the stack that should be refined", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Percent of particles to use (1 = all)", "The percentage of randomly selected particles that will be refined", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of reconstruction (A)", "Pixel size of input reconstruction in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Beam tilt along x (mrad)", "Beam tilt present in data along the x axis in mrad", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam tilt along y (mrad)", "Beam tilt present in data along the y axis in mrad", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Molecular mass of particle (kDa)", "Total molecular mass of the particle to be reconstructed in kilo Daltons", "1000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Inner mask radius (A)", "Radius of a circular mask to be applied to the center of the input reconstruction in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer mask radius (A)", "Radius of a circular mask to be applied to the input reconstruction and images during refinement, in Angstroms", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low resolution limit (A)", "Low resolution limit of the data used for alignment in Angstroms", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"High resolution limit (A)", "High resolution limit of the data used for alignment in Angstroms", "8.0"});
+    params.push_back(MyApp::InteractiveParameter{"Resolution limit for signed CC (A) (0.0 = max)", "The absolute value of the weighted Fourier ring correlation will be used beyond this limit", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Res limit for classification (A) (0.0 = max)", "Resolution limit of the data used for calculating LogP", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Mask radius for global search (A) (0.0 = max)", "Radius of a circular mask to be applied to the input images during global search", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Approx. resolution limit for search (A)", "High resolution limit of the data used in the global search in Angstroms", "20.0"});
+    params.push_back(MyApp::InteractiveParameter{"Angular step (0.0 = set automatically)", "Angular step size for global grid search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Number of top hits to refine", "The number of best global search orientations to refine locally", "20"});
+    params.push_back(MyApp::InteractiveParameter{"Search range in X (A) (0.0 = 0.5 * mask radius)", "The maximum global peak search distance along X from the particle box center", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Search range in Y (A) (0.0 = 0.5 * mask radius)", "The maximum global peak search distance along Y from the particle box center", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"2D mask X coordinate (A)", "X coordinate of 2D mask center", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"2D mask Y coordinate (A)", "Y coordinate of 2D mask center", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"2D mask Z coordinate (A)", "Z coordinate of 2D mask center", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"2D mask radius (A)", "Radius of a circular mask to be used for likelihood calculation", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus search range (A)", "Search range (-value ... + value) around current defocus", "500.0"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus step (A)", "Step size used in the defocus search", "50.0"});
+    params.push_back(MyApp::InteractiveParameter{"Tuning parameters: padding factor", "Factor determining how much the input volume is padded to improve projections", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Tuning parameters: filter constant", "Constant determining how strongly data with small CTF values is suppressed during particle alignment", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Global search", "Should a global search be performed before local refinement?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Local refinement", "Should a local parameter refinement be performed?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Refine Psi", "Should the Psi (in-plane) Euler angle be refined?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Refine Theta", "Should the Theta (out-of-plane) Euler angle be refined?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Refine Phi", "Should the Phi Euler angle be refined?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Refine ShiftX", "Should the X shift be refined?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Refine ShiftY", "Should the Y shift be refined?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Calculate matching projections", "Should matching projections be calculated?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Apply 2D masking", "Should 2D masking be used for the likelihood calculation?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Refine defocus", "Should the particle defocus be refined?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Normalize particles", "The input particle images should always be normalized unless they were pre-processed", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Invert particle contrast", "Should the contrast in the particle images be inverted?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Exclude images with blank edges", "Should particle images with blank edges be excluded from processing?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Normalize input reconstruction", "The input reconstruction should always be normalized unless it was generated by reconstruct3d with normalized particles", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Threshold input reconstruction", "Should the input reconstruction thresholded to suppress some of the background noise", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "When threading, what is the max threads to run", "1"});
+
+    return params;
 }

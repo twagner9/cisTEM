@@ -4,9 +4,10 @@
 class
         Refine2DApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
-    void DumpArrays( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    void                                     DumpArrays( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
     int      xy_dimensions;
     int      number_of_classes;
@@ -1346,4 +1347,39 @@ void Refine2DApp::SendRefineResult(cisTEMParameterLine* current_params) {
         intermediate_result->SetResult(19, gui_result_params);
         AddJobToResultQueue(intermediate_result);
     }
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Refine2DApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle images", "The input image stack, containing the experimental particle images", "my_image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input cisTEM star file", "The input star file, containing your particle alignment parameters", "my_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"Input class averages", "The 2D references representing the current best estimates of the classes", "my_input_classes.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output cisTEM star file", "The output star file, containing your refined particle alignment parameters", "my_refined_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"Output class averages", "The refined 2D class averages", "my_refined_classes.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Number of classes (>0 = initialize classes)", "The number of classes that should be refined; 0 = the number is determined by the stack of input averages", "0"});
+    params.push_back(MyApp::InteractiveParameter{"First particle to refine (0 = first in stack)", "The first particle in the stack that should be refined", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last particle to refine (0 = last in stack)", "The last particle in the stack that should be refined", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Percent of particles to use (1 = all)", "The percentage of randomly selected particles that will be used for classification", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of class averages (A)", "Pixel size of input class averages in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Mask radius (A)", "Radius of a circular mask to be applied to the input class averages", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low resolution limit (A)", "Low resolution limit of the data used for alignment in Angstroms", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"High resolution limit (A)", "High resolution limit of the data used for alignment in Angstroms", "8.0"});
+    params.push_back(MyApp::InteractiveParameter{"Angular step (0.0 = set automatically)", "Angular step size for global grid search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Search range (A) (0.0 = max)", "The maximum global peak search distance along X and Y from the particle box center", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Tuning parameter: smoothing factor", "Factor for likelihood-weighting; values smaller than 1 will blur results more, larger values will emphasize peaks", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Tuning parameter: padding factor for interpol.", "Factor determining how padding is used to improve interpolation for image rotation", "2"});
+    params.push_back(MyApp::InteractiveParameter{"Normalize particles", "The input particle images should always be normalized unless they were pre-processed", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Invert particle contrast", "Should the contrast in the particle images be inverted?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Exclude images with blank edges", "Should particle images with blank edges be excluded from processing?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Automatically mask class averages", "Should automatic masking be applied to class averages?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Automatically center class averages", "Should class averages be centered to their center of mass automatically?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Dump intermediate arrays (merge later)", "Should the intermediate 2D class sums be dumped to a file for later merging with other jobs", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Output dump filename for intermediate arrays", "The name of the dump file with the intermediate 2D class sums", "dump_file.dat"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "When threading, what is the max threads to run", "1"});
+
+    return params;
 }

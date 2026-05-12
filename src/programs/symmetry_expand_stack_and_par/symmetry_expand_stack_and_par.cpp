@@ -3,8 +3,9 @@
 class
         SymmetryExpandStackAndPar : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -518,4 +519,33 @@ bool SymmetryExpandStackAndPar::DoCalculation( ) {
     wxPrintf("\nSymmetryExpandStackAndPar: Normal termination\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SymmetryExpandStackAndPar::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle images", "The input image stack, containing the experimental particle images", "my_image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input Frealign parameter filename", "The input parameter file, containing your particle alignment parameters", "my_parameters.par"});
+    params.push_back(MyApp::InteractiveParameter{"Output expanded stack", "The output image stack, containing symmetry related copies", "my_symmetry_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output expanded Frealign parameter filename", "The output parameter file, containing symmetry related copies", "my_symmetry_parameters.par"});
+    params.push_back(MyApp::InteractiveParameter{"Include Subtraction Step", "do you also want to include a subtraction step?", "YES"});
+    params.push_back(MyApp::InteractiveParameter{"Input original reconstruction for subtraction", "The 3D reconstruction which will be masked, then subtracted", "my_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask of area to be subtracted", "A mask specify the area to subtract", "my_subtraction_mask.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Use Least Squares Scaling", "Answer yes to scale per particle.", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Mask Radius for scaling (A)", "Only consider within this radius for scaling", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Center and crop specific area", "If yes, the (3D) co-ordinates specified will be centered and cropped in the resulting 2D images. Typically, this would be the are that WASNT subtracted", "YES"});
+    params.push_back(MyApp::InteractiveParameter{"Center and crop specific area", "If yes, the (3D) co-ordinates specified will be centered and cropped in the resulting 2D images. Typically, this would be the area that WASNT subtracted", "YES"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"X-Coord in 3D to center (pixels)", "0 is bottom left", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Y-Coord in 3D to center (pixels)", "0 is bottom left", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Z-Coord in 3D to center (pixels)", "0 is bottom left", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Output box size", "images will be cropped to this size after centereing", "100"});
+    params.push_back(MyApp::InteractiveParameter{"First particle to process", "first particle to process", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last  particle to process (0 = last in stack)", "last particle to process", "0"});
+
+    return params;
 }

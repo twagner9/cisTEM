@@ -4,8 +4,9 @@ class
         ResetMRCHeaderApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -67,4 +68,13 @@ bool ResetMRCHeaderApp::DoCalculation( ) {
     wxPrintf("\nAll done.\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ResetMRCHeaderApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image. Its header will be reset.", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"New pixel size", "New pixel size, in Angstroms", "1.0"});
+
+    return params;
 }

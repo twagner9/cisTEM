@@ -4,8 +4,9 @@ class
         InvertStack : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -58,4 +59,13 @@ bool InvertStack::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> InvertStack::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #1", "Filename of first stack to be multiplied", "input_stack1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "the inverted result", "output.mrc"});
+
+    return params;
 }

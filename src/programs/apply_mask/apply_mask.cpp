@@ -4,8 +4,9 @@ class
         ApplyMask : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -79,4 +80,20 @@ bool ApplyMask::DoCalculation( ) {
     wxPrintf("\nMask volume = %g voxels\n\n", mask_volume);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ApplyMask::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image/volume file name", "Name of input image file", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask file name", "Name of input image file", "mask.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output masked image/volume file name", "Name of output image with mask applied", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Width of cosine edge (A)", "Width of the smooth edge to add to the mask in Angstroms", "10.0"});
+    params.push_back(MyApp::InteractiveParameter{"Weight of density outside mask", "Factor to multiply density outside of the mask", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low-pass filter outside mask (A)", "Low-pass filter to be applied to the density outside the mask", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outside mask value", "Value used to set density outside the mask", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Use outside mask value", "Should the density outside the mask be set to the user-provided value", "No"});
+
+    return params;
 }

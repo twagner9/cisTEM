@@ -4,8 +4,9 @@ class
         LocalResolutionFilter : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -52,4 +53,15 @@ bool LocalResolutionFilter::DoCalculation( ) {
     input_volume.WriteSlicesAndFillHeader(output_volume_fn.ToStdString( ), pixel_size);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> LocalResolutionFilter::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input volume", "The volume to be filtered", "my_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Local resolution map", "A volume with a local resolution estimate at each voxel", "local_resolution.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output volume", "This volume will be filtered", "my_filtered_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size (A)", "Pixel size of the map in Angstroms", "1.0"});
+
+    return params;
 }

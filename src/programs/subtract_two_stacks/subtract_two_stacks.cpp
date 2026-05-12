@@ -4,8 +4,9 @@ class
         SubtractTwoStacks : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -74,4 +75,14 @@ bool SubtractTwoStacks::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SubtractTwoStacks::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #1", "Filename of stack to be subtracted from", "input_stack1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #2", "Filename of stack to be subtracted", "input_stack2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "the subtracted result", "output.mrc"});
+
+    return params;
 }

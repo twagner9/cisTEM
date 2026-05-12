@@ -90,13 +90,14 @@ void MyApp::OnEventLoopEnter(wxEventLoopBase* loop) {
         command_line_parser.AddParam("controller_port", wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL);
         command_line_parser.AddParam("job_code", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
         command_line_parser.AddParam("wanted_number_of_threads", wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL);
+        command_line_parser.AddSwitch("h", "help", "Display help");
 
         // Let the app add options
         AddCommandLineOptions( );
 
         //wxPrintf("\n");
 
-        parse_status        = command_line_parser.Parse(true);
+        parse_status        = command_line_parser.Parse(false);
         number_of_arguments = command_line_parser.GetParamCount( );
 
         if ( parse_status != 0 ) {
@@ -108,6 +109,16 @@ void MyApp::OnEventLoopEnter(wxEventLoopBase* loop) {
 
         // if we have no arguments run interactively.. if we have 4 continue as though we have network info, else error..
 
+        if ( command_line_parser.Found("h") ) {
+            command_line_parser.Usage( );
+            wxPrintf("\nInteractive Parameters:\n\n");
+            PrintProgramSpecificOptions( );
+            fflush(stdout);
+            // ExitMainLoop( );
+            exit(0);
+            return;
+        }
+
         if ( number_of_arguments == 0 ) {
             is_running_locally = true;
             DoInteractiveUserInput( );
@@ -118,10 +129,15 @@ void MyApp::OnEventLoopEnter(wxEventLoopBase* loop) {
             fftwf_cleanup( ); // this is needed to stop valgrind reporting memory leaks..
             exit(0);
         }
+
         else if ( number_of_arguments != 4 ) {
             command_line_parser.Usage( );
             wxPrintf("\n\n");
-            ExitMainLoop( );
+
+            wxPrintf("\nInteractive Parameters:\n\n");
+            PrintProgramSpecificOptions( );
+
+            // ExitMainLoop( );
             exit(0);
             return;
         }
@@ -1210,4 +1226,16 @@ void MyApp::IfSocketIsAKeySocketSetItToNull(wxSocketBase* socket_to_check) {
 
     if ( master_socket == socket_to_check )
         master_socket = NULL;
+}
+
+// Overridden in derived classes
+void MyApp::PrintProgramSpecificOptions( ) {
+    for ( const auto& param : GetInteractiveParameters( ) ) {
+        wxPrintf("  %s\n", param.name);
+        if ( ! param.description.empty( ) ) {
+            wxPrintf("      %s\n", param.description);
+        }
+        wxPrintf("      Default: %s\n\n",
+                 param.default_value);
+    }
 }

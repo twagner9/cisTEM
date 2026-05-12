@@ -4,8 +4,9 @@ class
         AlignCoordinatesApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -579,4 +580,23 @@ bool AlignCoordinatesApp::DoCalculation( ) {
 */
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> AlignCoordinatesApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Reference coordinates (A)", "File with x,y,z coordinates to align to", "input_ref_coords.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Coordinates to be aligned (A)", "File with x,y,z coordinates to be aligned", "input_align_coords.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Output Chimera cmd file", "File with alignment commands for UCSF Chimera", "output_chimera.cmd"});
+    params.push_back(MyApp::InteractiveParameter{"Distance tolerance (A)", "Distance of points to count as being close (in projection)", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Margin (A)", "Margin of aligned coordinates that should be excluded for comparison", "200.0"});
+    params.push_back(MyApp::InteractiveParameter{"X-dimension (A)", "The X-dimension of the field of view used for HRTM", "5800.0"});
+    params.push_back(MyApp::InteractiveParameter{"Y-dimension (A)", "The Y-dimension of the field of view used for HRTM", "4100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Initial X offset (A)", "The X-offset from a previous search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Initial Y offset (A)", "The Y-offset from a previous search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Initial Z offset (A)", "The Z-offset from a previous search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Initial angle (deg)", "The in-plane alignment angle from a previous search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Perform search", "Should a search & refinement be performed?", "Yes"});
+
+    return params;
 }

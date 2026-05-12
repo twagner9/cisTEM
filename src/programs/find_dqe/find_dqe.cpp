@@ -4,8 +4,9 @@ class
         FindDQE : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -1120,4 +1121,19 @@ bool FindDQE::DoCalculation( ) {
     wxPrintf("\nFindDQE finished cleanly!\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> FindDQE::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input shadow image 1", "Filename of input image 1 showing shadow of pointer or aperture", "input1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input shadow image 2", "Filename of input image 2 showing shadow of pointer or aperture", "input2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Use both images", "Should both images be used in the calculation for more reliable results?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Output DQE table", "Filename of output table listing MTF, NPS and DQE values", "table.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Output diagnostic image", "Filename of output image showing residuals after MTF fit", "residual.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Counting detector", "Were the input images recorded on a counting detector?", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Counts multiplier", "Factor to be applied to camera counts to undo multiplication by the data collection software", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Exposure per pixel", "The number of electrons per pixel used to collect the input image", "50.0"});
+
+    return params;
 }

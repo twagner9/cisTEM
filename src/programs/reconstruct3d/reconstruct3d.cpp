@@ -3,8 +3,9 @@
 class
         Reconstruct3DApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -1297,4 +1298,51 @@ bool Reconstruct3DApp::DoCalculation( ) {
     wxPrintf("\nReconstruct3D: Normal termination\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Reconstruct3DApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle images", "The input particle image stack, containing the 2D images for each particle in the dataset", "my_particle_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input cisTEM star filename", "The input star file, containing your particle alignment parameters", "my_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction", "The 3D reconstruction from the previous refinement cycle to perform likelihood blurring", "my_input_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output reconstruction 1", "The first output 3D reconstruction, calculated form half the data", "my_reconstruction_1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output reconstruction 2", "The second output 3D reconstruction, calculated form half the data", "my_reconstruction_2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output filtered reconstruction", "The final 3D reconstruction, containing from all data and optimally filtered", "my_filtered_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output resolution statistics", "The text file with the resolution statistics for the final reconstruction", "my_statistics.txt"});
+    params.push_back(MyApp::InteractiveParameter{"First particle to include (0 = first in stack)", "The first particle in the stack that should be included in the reconstruction", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last particle to include (0 = last in stack)", "The last particle in the stack that should be included in the reconstruction", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of reconstruction (A)", "Pixel size of the output reconstruction in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Beam tilt along x (mrad)", "Beam tilt present in data along the x axis in mrad", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam tilt along y (mrad)", "Beam tilt present in data along the y axis in mrad", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Particle shift along x (A)", "Average particle shift along the x axis as a result of beam tilt in A", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Particle shift along y (A)", "Average particle shift along the y axis as a result of beam tilt in A", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Molecular mass of particle (kDa)", "Total molecular mass of the particle to be reconstructed in kilo Daltons", "1000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Inner mask radius (A)", "Radius of a circular mask to be applied to the center of the final reconstruction in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer mask radius (A)", "Radius of a circular mask to be applied to the final reconstruction in Angstroms", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Rec. resolution limit (A) (0.0 = max)", "The resolution to which the reconstruction will be calculated, in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Ref. resolution limit (A) (0.0 = max)", "The resolution used during refinement, in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Particle weighting factor (A^2)", "Constant to convert particle scores to resolution-dependent weight in squared Angstroms", "5.0"});
+    params.push_back(MyApp::InteractiveParameter{"Score threshold (<= 1 = percentage)", "Minimum score to include a particle in the reconstruction", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Tuning parameter: smoothing factor", "Factor for likelihood-weighting; values smaller than 1 will blur results more, larger values will emphasize peaks", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Tuning parameters: padding factor", "Factor determining how much the input volume is padded to improve projections", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Normalize particles", "The input particle images should always be normalized unless they were pre-processed", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Adjust scores for defocus dependence", "Should the particle scores be adjusted internally to reduce their dependence on defocus", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Invert particle contrast", "Should the contrast in the particle images be inverted?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Exclude images with blank edges", "Should particle images with blank edges be excluded from processing?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Crop particle images", "Should the particle images be cropped to speed up computation?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"If no subset assigned, FSC calc with even/odd particles?", "Should the FSC half volumes be calculated using even and odd particles? (only relevant if star file does not specify cisTEMAssignedSubset", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Center mass", "Should the calculated map be centered in the box according to the center of mass (only for C symmetry)?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Apply likelihood blurring", "Should ML blurring be applied?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Threshold input reconstruction", "Should the input reconstruction thresholded to suppress some of the background noise", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Correct for Ewald sphere curvature (0 = no, 1 = correct hand, -1 = wrong hand)", "Should the reconstruction be corrected for the Ewald sphere curvature?", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Dump intermediate arrays (merge later)", "Should the 3D reconstruction arrays be dumped to a file for later merging with other jobs", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Output dump filename for odd particles", "The name of the first dump file with the intermediate reconstruction arrays", "dump_file_1.dat"});
+    params.push_back(MyApp::InteractiveParameter{"Output dump filename for even particles", "The name of the second dump file with the intermediate reconstruction arrays", "dump_file_2.dat"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "When threading, what is the max threads to run", "1"});
+
+    return params;
 }

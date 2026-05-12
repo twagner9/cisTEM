@@ -4,8 +4,9 @@ class
         InvertHand : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -47,4 +48,13 @@ bool InvertHand::DoCalculation( ) {
     my_image.WriteSlices(&output_file, 1, input3d_file.ReturnNumberOfSlices( ));
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> InvertHand::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input volume file name", "Name of input image file", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output inverted volume file name", "Name of output image with mask applied", "output.mrc"});
+
+    return params;
 }

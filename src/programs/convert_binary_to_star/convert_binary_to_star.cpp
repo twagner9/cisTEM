@@ -4,8 +4,9 @@ class
         ConvertBinToStar : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -41,4 +42,13 @@ bool ConvertBinToStar::DoCalculation( ) {
     wxPrintf("\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ConvertBinToStar::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input cisTEM binary file", "Filename of cisTEM binary file to convert", "input.cistem"});
+    params.push_back(MyApp::InteractiveParameter{"Output cisTEM Star file", "converted output in the cisTEM Star format", "output.star"});
+
+    return params;
 }

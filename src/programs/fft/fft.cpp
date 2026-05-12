@@ -4,8 +4,9 @@ class
         FFTApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -97,4 +98,15 @@ bool FFTApp::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> FFTApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Is the input a volume", "Yes if it is a 3D", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Enhance Thon rings?", "Manipulate grey values to enhance Thon rings?", "no"});
+
+    return params;
 }

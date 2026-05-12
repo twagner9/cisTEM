@@ -4,8 +4,9 @@ class
         CalculateFSC : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -133,4 +134,20 @@ bool CalculateFSC::DoCalculation( ) {
         delete input_mask_file;
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CalculateFSC::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction 1", "The first input 3D reconstruction used for FSC calculation", "my_reconstruction_1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction 2", "The second input 3D reconstruction used for FSC calculation", "my_reconstruction_2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask file name", "Name of input 3D volume to be applied to input reconstructions ", "mask.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output resolution statistics", "The table listing FSC, Part_FSC, Part_SSNR and Rec_SSNR", "my_statistics.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size (A)", "Pixel size of the map in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Inner mask radius (A)", "Radius of a circular mask to be applied to the center of the input reconstructions, in Angstroms", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer mask radius (A)", "Radius of a circular mask to be applied to the input reconstructions, in Angstroms", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Molecular mass of particle (kDa)", "Total molecular mass of the particle to be reconstructed in kilo Daltons", "1000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Use 3D mask", "Should the 3D mask be used to mask the input reconstructions before FSC calculation?", "No"});
+
+    return params;
 }

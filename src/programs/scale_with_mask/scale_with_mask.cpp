@@ -4,8 +4,9 @@ class
         ScaleWithMask : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -130,4 +131,19 @@ bool ScaleWithMask::DoCalculation( ) {
     wxPrintf("\n\nScale with mask finished cleanly!\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ScaleWithMask::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input reference volume", "Filename of volume to scale to", "ref.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input volume to scale", "Filename of volume to scale", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask for volume #1", "Filename of volume to use as a mask prior to calculating scale filter", "mask1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input mask for volume #2 (can be same)", "Filename of volume to use as a mask prior to calculating scale filter", "mask2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output scaled volume", "Filename of output scaled volume", "scaled.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Cut-Off Resolution?", "If yes, the resolution will be cut off by a cosine at the specified resolution", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel Size (A)", "The pixel size in angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted resolution cut-off (A)", "The cut-off resolution", "3.0"});
+
+    return params;
 }

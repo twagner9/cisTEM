@@ -105,8 +105,9 @@ WX_DEFINE_OBJARRAY(ArrayOfAggregatedTemplateResults);
 class
         MatchTemplateApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
     /**
      * @brief Handles program-defined results received by the master process from worker processes.
      *
@@ -2502,4 +2503,46 @@ void MatchTemplateApp::RescaleMipAndStatisticalArraysByGlobalMeanAndStdDev(Image
     //     aggregated_results[array_location].collated_mip_data[pixel_counter]          = (temp_filtered_img.real_values[pixel_counter] > 0.00001) ? aggregated_results[array_location].collated_mip_data[pixel_counter] / temp_filtered_img.real_values[pixel_counter] : 0.0f;
     //     aggregated_results[array_location].collated_pixel_square_sums[pixel_counter] = temp_filtered_img.real_values[pixel_counter];
     // }
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MatchTemplateApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input images to be searched", "The input image stack, containing the images that should be searched", "image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input template reconstruction", "The 3D reconstruction from which projections are calculated", "reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output MIP file", "The file for saving the maximum intensity projection image", "mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output Scaled MIP file", "The file for saving the maximum intensity projection image divided by correlation variance", "mip_scaled.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output psi file", "The file for saving the best psi image", "psi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output theta file", "The file for saving the best psi image", "theta.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output phi file", "The file for saving the best psi image", "phi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output defocus file", "The file for saving the best defocus image", "defocus.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output pixel size file", "The file for saving the best pixel size image", "pixel_size.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Correlation average value", "The file for saving the average value of all correlation images", "corr_average.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Correlation variance output file", "The file for saving the variance of all correlation images", "corr_stddev.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output histogram of correlation values", "histogram of all correlation values", "histogram.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus1 (angstroms)", "Defocus1 for the input image", "10000"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus2 (angstroms)", "Defocus2 for the input image", "10000"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus Angle (degrees)", "Defocus Angle for the input image", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Phase Shift (degrees)", "Additional phase shift in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Low resolution limit (A)", "Low resolution limit of the data used for alignment in Angstroms", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"High resolution limit (A)", "High resolution limit of the data used for alignment in Angstroms", "8.0"});
+    params.push_back(MyApp::InteractiveParameter{"Out of plane angular step (0.0 = set automatically)", "Angular step size for global grid search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"In plane angular step (0.0 = set automatically)", "Angular step size for in-plane rotations during the search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Number of top hits to refine", "The number of best global search orientations to refine locally", "20"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus search range (A)", "Search range (-value ... + value) around current defocus", "500.0"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus step (A) (0.0 = no search)", "Step size used in the defocus search", "50.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size search range (A)", "Search range (-value ... + value) around current pixel size", "0.1"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size step (A) (0.0 = no search)", "Step size used in the pixel size search", "0.01"});
+    params.push_back(MyApp::InteractiveParameter{"Padding factor", "Factor determining how much the input volume is padded to improve projections", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Refine defocus", "Should the particle defocus be refined?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Mask radius for global search (A) (0.0 = max)", "Radius of a circular mask to be applied to the input images during global search", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Use GPU", "Offload expensive calcs to GPU", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Use Fast FFT", "Use the Fast FFT library", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "when threading, what is the max threads to run", "1"});
+
+    return params;
 }

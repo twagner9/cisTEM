@@ -4,8 +4,9 @@ class
         Binarize : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -79,4 +80,14 @@ bool Binarize::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Binarize::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Binarization Threshold", "Values less than this value will be 0.0, values equal to or greater will be 1.", "1.0"});
+
+    return params;
 }

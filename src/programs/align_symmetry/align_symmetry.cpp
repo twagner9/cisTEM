@@ -3,8 +3,9 @@
 class
         AlignSymmetryApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -516,4 +517,17 @@ bool AlignSymmetryApp::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> AlignSymmetryApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input volume", "The volume you want to align", "my_volume.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output aligned volume", "The volume that has been aligned, but not symmetrised", "my_volume_ali.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output symmetrised volume", "The volume that has been aligned and symmetrised", "my_volume_ali_sym.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Start angle for search (degrees)", "Angle at which to begin the search on each axis", "-90.0"});
+    params.push_back(MyApp::InteractiveParameter{"End angle for search (degrees)", "Angle at which to end the search on each axis", "90.0"});
+    params.push_back(MyApp::InteractiveParameter{"Initial angular search step (degrees)", "angular step for the initial search", "5.0"});
+
+    return params;
 }

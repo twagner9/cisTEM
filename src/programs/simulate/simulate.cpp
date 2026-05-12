@@ -113,9 +113,10 @@ class SimulateApp : public MyApp {
 
     Image* projected_water = nullptr; // waters calculated over the specified subpixel shifts and projected.
 
-    bool        DoCalculation( );
-    void        DoInteractiveUserInput( );
-    std::string output_filename;
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
+    std::string                              output_filename;
 
     float mean_defocus          = 0.0f;
     float defocus_1             = 0.0f;
@@ -3055,4 +3056,52 @@ void SimulateApp::apply_sqrt_DQE_or_NTF(Image* image_in, int iTilt_IDX, bool do_
     if ( do_backward_fft ) {
         image_in[iTilt_IDX].BackwardFFT( );
     }
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SimulateApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Output filename", "just the base, no extension, will be mrc", "test_tilt.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Make a 3d scattering potential?", "just potential if > 0, input is the wanted cubic size", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted output size", "Size along all dimensions", "16"});
+    params.push_back(MyApp::InteractiveParameter{"Number of threads", "Max is number of tilts", "1"});
+    params.push_back(MyApp::InteractiveParameter{"PDB file name", "an input PDB", "my_atom_coords.pdb"});
+    params.push_back(MyApp::InteractiveParameter{"Add another type of particle?", "Add another pdb to create additional features in the ensemble", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Output pixel size (Angstroms)", "Output size for the final projections", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Linear scaling of per atom bFactor", "0 off, 1 use as is", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Per atom (xtal) bFactor added to all atoms", "accounts for all quote[unavoidable] experimental error", "15.0"});
+    params.push_back(MyApp::InteractiveParameter{"electrons/Ang^2 in a frame at the specimen", "", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"number of frames per movie (micrograph or tilt)", "", "30"});
+    params.push_back(MyApp::InteractiveParameter{"Use an existing set of orientations", "yes no", "no"});
+    params.push_back(MyApp::InteractiveParameter{"cisTEM star file name", "an input star file to match reconstruction", "myparams.star"});
+    params.push_back(MyApp::InteractiveParameter{"Create a particle stack rather than a micrograph?", "Number of particles at random orientations, 0 for just an image", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Create a tilt-series as well?", "Note that this is mutually exclusive with creating a particle stack", "no"});
+    params.push_back(MyApp::InteractiveParameter{"wanted mean_defocus (Angstroms)", "Out", "700"});
+    params.push_back(MyApp::InteractiveParameter{"wanted additional phase shift x * PI radians, i.e. 0.5 for PI/2 shift.", "", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"electrons/Ang^2 in a frame at the specimen", "", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"electrons/Pixel/sec", "Affects coherence but not coincidence loss", "3.0"});
+    params.push_back(MyApp::InteractiveParameter{"number of frames per movie (micrograph or tilt)", "", "30"});
+    params.push_back(MyApp::InteractiveParameter{"Set expert options?", "", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Linear scaling water intensity", "0 off, 1 use as is", "1"});
+    params.push_back(MyApp::InteractiveParameter{"fraction of the mean_defocus to add as astigmatism", "0 off, 1 use as is", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"IGNORED with input star: Accelrating volatage (kV)", "Default is 300", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"IGNORED iwth input star: Spherical aberration constant in millimeters", "", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Accelrating volatage (kV)", "Default is 300", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration constant in millimeters", "", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Objective aperture diameter in micron", "", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Std deviation of error to use in shifts, astigmatism, rotations etc.", "", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pre-exposure in electron/A^2", "use for testing exposure filter", "0"});
+    params.push_back(MyApp::InteractiveParameter{"minimum padding of images with solvent", "", "32"});
+    params.push_back(MyApp::InteractiveParameter{"minimum thickness in Z", "", "10"});
+    params.push_back(MyApp::InteractiveParameter{"Propagation distance in angstrom", "Also used as minimum thickness", "5"});
+    params.push_back(MyApp::InteractiveParameter{"Rotation of tilt-axis from Y (degrees)", "", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Standard deviation on angles in plane (degrees)", "", "2"});
+    params.push_back(MyApp::InteractiveParameter{"Standard deviation on tilt-angles (degrees)", "", "0.1"});
+    params.push_back(MyApp::InteractiveParameter{"Standard deviation on magnification (fraction)", "", "0.0001"});
+    params.push_back(MyApp::InteractiveParameter{"Beam-tilt in X (milli radian)", "", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam-tilt in Y (milli radian)", "", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam-tilt particle shift in X (Angstrom)", "", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam-tilt particle shift in Y (Angstrom)", "", "0.0"});
+
+    return params;
 }

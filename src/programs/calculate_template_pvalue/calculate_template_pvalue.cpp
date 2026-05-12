@@ -264,8 +264,9 @@ std::vector<float> Calculate1QPValue(const std::vector<float>& ag_x1_,
 class
         CalculateTemplatePvalue : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -988,4 +989,35 @@ bool CalculateTemplatePvalue::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CalculateTemplatePvalue::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Run multiple images in a template match job?", "Individual image (false) or multiple images (true)", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Input database file", "The file for template match project", "tm.db"});
+    params.push_back(MyApp::InteractiveParameter{"Template Match Job ID", "template matching job id", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Output star file", "The star file containing the particle alignment parameters", "particle_stack.star"});
+    params.push_back(MyApp::InteractiveParameter{"Number of threads", "Max is number of images in TM job", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Input template reconstruction", "The 3D reconstruction from which projections are calculated", "reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input scaled MIP file", "The file for saving the maximum intensity projection image", "mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input MIP file", "The file for saving the maximum intensity projection image", "mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input psi file", "The file containing the best psi image", "psi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input theta file", "The file containing the best psi image", "theta.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input phi file", "The file containing the best psi image", "phi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input defocus file", "The file with the best defocus image", "defocus.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input pixel size file", "The file with the best pixel size image", "pixel_size.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output x,y,z coordinate file", "The file for saving the x,y,z coordinates of the found targets", "coordinates.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Output 2D projection montage", "The file for saving the found result", "result.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output slab volume montage", "The file for saving the slab with the found targets", "slab.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Sample thickness (A)", "The thickness of the sample that was searched", "2000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Binning factor for slab", "Factor to reduce size of output slab", "4.0"});
+    params.push_back(MyApp::InteractiveParameter{"Min Peak Radius (px.)", "Essentially the minimum closeness for peaks", "10"});
+    params.push_back(MyApp::InteractiveParameter{"Ignore N pixels from the edge of the MIP", "Default to 50px", "10"});
+    params.push_back(MyApp::InteractiveParameter{"Sorting metric -- z-score(1) SNR(2) p-value(3)", "Thresholding metric for 2DTM output", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Local maxima metric -- z-score(1) SNR(2)", "Maximum filter metric for 2DTM output", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Sorting cutoff", "cutoff for selected metric", "7.5"});
+
+    return params;
 }

@@ -5,8 +5,9 @@ class
         SumAllMRC : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -204,4 +205,17 @@ bool SumAllMRC::DoCalculation( ) {
     wxPrintf("\n\nSum All MRC File finished Cleanly!\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SumAllMRC::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Output sum file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Take Reciprocal and Scale?", "If yes, the image will be 1/image and scaled to max density 1.", "YES"});
+    params.push_back(MyApp::InteractiveParameter{"Estimate Dark and Gain images", "If yes, a dark and gain image will be estimated", "YES"});
+    params.push_back(MyApp::InteractiveParameter{"Output dark file name", "Filename of output dark image", "dark_image.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output gain file name", "Filename of output gain image", "gain_image.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Max number of threads to use", "maximum number of threads to use for processing.", "1"});
+
+    return params;
 }

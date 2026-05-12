@@ -4,8 +4,9 @@ class
         CreateMask : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -66,4 +67,19 @@ bool CreateMask::DoCalculation( ) {
     endTime = clock( );
     MyDebugPrint("\nThe run time is: %fs\n", (double)(endTime - startTime) / CLOCKS_PER_SEC);
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> CreateMask::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image/volume file name", "Name of input image file", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output masked image/volume file name", "Name of output image with mask applied", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer radius of mask (A)", "The mask radius in Angstroms", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Auto Estimate Binarization threshold?", "If Yes, the initial binarization threshold will be estimated automatically, answer NO to provide your own (e.g. from Chimera thresholding)", "YES"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted initial binarization threshold", "Density will be thresholded at this value initially", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Low-pass filter resolution (A)", "Low-pass filter resolution to be applied to the density", "10.0"});
+    params.push_back(MyApp::InteractiveParameter{"Re-Bin Value (0-1)", "Higher values will lead to smaller masks, lower values to larger masks", "0.35"});
+
+    return params;
 }

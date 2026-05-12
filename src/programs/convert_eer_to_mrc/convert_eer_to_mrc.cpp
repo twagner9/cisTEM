@@ -4,8 +4,9 @@ class
         ConvertEERToMRC : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -67,4 +68,17 @@ bool ConvertEERToMRC::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ConvertEERToMRC::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input eer file name", "Name of input eer file", "input.eer"});
+    params.push_back(MyApp::InteractiveParameter{"Output movie mrc file", "Name of output converted mrc file", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Super Resolution Level (1, 2 or 4)", "do you want images 1, 2, or 4 times physical size", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Temporal Frame Bin Factor", "How many 'raw' frames should be added together for the output", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Also write an unaligned sum?", "if yes the unaligned sum will be written", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Output summed movie files", "Filename to save unaligned sum", "output_sum.mrc"});
+
+    return params;
 }

@@ -3,8 +3,9 @@
 class
         PrepareStackApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
     float GetMaxJobWaitTimeInSeconds( ) { return 180.0f; }
 
@@ -205,4 +206,18 @@ bool PrepareStackApp::DoCalculation( ) {
     //else wxSleep(10); // to make sure we don't die before the image data has been sent over completely (not sure if necessary)
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> PrepareStackApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle stack", "The input image stack, containing the experimental particle images", "my_image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input cisTEM star file", "The input parameter file, containing your particle parameters", "my_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"Output particle stack", "The output image stack, containing the prepared particle images", "my_image_stack_prep.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted Output Pixel Size (Angstroms)", "Wanted pixel size of the images", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Mask radius (Angstroms)", "For calculating noise statistics", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Resample output?", "If yes you can resample the output image to a specified size", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Resampled box size", "How big to resample the box size to?", "512"});
+
+    return params;
 }

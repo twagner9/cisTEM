@@ -4,8 +4,9 @@
 class
         SplitClassAveragesApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -181,4 +182,21 @@ bool SplitClassAveragesApp::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> SplitClassAveragesApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle images", "The input image stack, containing the experimental particle images", "my_image_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input Frealign parameter filename", "The input parameter file, containing your particle alignment parameters", "my_parameters.par"});
+    params.push_back(MyApp::InteractiveParameter{"Output class averages", "The refined 2D class averages", "my_refined_classes.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Original Class number wanted", "", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Number of classes wanted", "", "100"});
+    params.push_back(MyApp::InteractiveParameter{"Number of images per class wanted", "", "25"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size", "", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Microscope voltage (kV)", "", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Microscope Cs (mm)", "", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude Contrast", "", "0.07"});
+
+    return params;
 }

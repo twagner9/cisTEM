@@ -201,6 +201,22 @@ class
     }
 
     virtual void AddCommandLineOptions( );
+    virtual void PrintProgramSpecificOptions( );
+
+    /**
+	 * @brief Enables derived classes to easily print options that are specific
+	 * to the CLI program implemented with the 3 universal requirements for
+	 * adding an interactive input in these programs.
+	 * 
+	 */
+    struct InteractiveParameter {
+
+        wxString name;
+        wxString description;
+        wxString default_value;
+    };
+
+    virtual std::vector<struct InteractiveParameter> GetInteractiveParameters( ) const = 0;
 
     void SendError(wxString error_message);
     void SendErrorAndCrash(wxString error_message);

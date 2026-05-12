@@ -3,8 +3,9 @@
 class
         MakeParticleStack : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -316,4 +317,35 @@ bool MakeParticleStack::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MakeParticleStack::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Read coordinates from file?", "Should the target coordinates be read from a file instead of search results?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Input MIP file", "The file for saving the maximum intensity projection image", "mip.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input psi file", "The file containing the best psi image", "psi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input theta file", "The file containing the best psi image", "theta.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input phi file", "The file containing the best phi image", "phi.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input defocus file", "The file with the best defocus image", "defocus.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output x,y,z coordinate file", "The file for saving the x,y,z coordinates of the found targets", "coordinates.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Peak threshold", "Peaks over this size will be taken", "7.5"});
+    params.push_back(MyApp::InteractiveParameter{"Min Peak Radius (px.)", "Essentially the minimum closeness for peaks", "10.0"});
+    params.push_back(MyApp::InteractiveParameter{"Result number to process", "If input files contain results from several searches, which one should be used?", "1"});
+    params.push_back(MyApp::InteractiveParameter{"X-dimension of original MIP", "The x-dimension of the MIP that contained the peaks listed in the input coordinate file", "5760"});
+    params.push_back(MyApp::InteractiveParameter{"Y-dimension of original MIP", "The y-dimension of the MIP that contained the peaks listed in the input coordinate file", "4092"});
+    params.push_back(MyApp::InteractiveParameter{"Input x,y,z coordinate file", "The file containing the x,y,z coordinates of the found targets", "coordinates.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Input image file", "The image that was searched", "image.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output star file", "The star file containing the particle alignment parameters", "particle_stack.star"});
+    params.push_back(MyApp::InteractiveParameter{"Output particle stack", "The output image stack, containing the picked particles", "particle_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Box size for particles (px.)", "The pixel dimensions of the box used to cut out the particles", "256"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of image (A)", "Pixel size of input image in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Average defocus 1 (A)", "The average defocus estimated for the image in direction 1", "5000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Average defocus 2 (A)", "The average defocus estimated for the image in direction 2", "5000.0"});
+    params.push_back(MyApp::InteractiveParameter{"Average defocus angle (deg)", "The average defocus angle estimated for the image", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+
+    return params;
 }

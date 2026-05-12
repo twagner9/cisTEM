@@ -4,8 +4,9 @@ class
         MagDistortionCorrectApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -136,4 +137,21 @@ bool MagDistortionCorrectApp::DoCalculation( ) {
     }
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MagDistortionCorrectApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image(s) filename", "The input file, containing the images you want to correct", "my_images.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output distortion corrected image(s)", "The output file, containing the distortion corrected images", "my_images_corrected.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Distortion Angle (Degrees)", "The distortion angle in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Major Scale", "The major axis scale factor", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Minor Scale", "The minor axis scale factor", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Input stack is gain-corrected?", "Are the input frames are already gain-corrected, if no, you can provide a gain to apply", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Gain image filename", "The filename of the camera's gain reference image", "my_gain_reference.dm4"});
+    params.push_back(MyApp::InteractiveParameter{"Resample the output?", "If yes, the image will be resampled using Fourier cropping to the desired size", "no"});
+    params.push_back(MyApp::InteractiveParameter{"New X-Size", "The desired X size after resampling", "3838"});
+    params.push_back(MyApp::InteractiveParameter{"New Y-Size", "The desired Y size after resampling", "3708"});
+
+    return params;
 }

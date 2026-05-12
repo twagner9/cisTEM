@@ -4,8 +4,9 @@ class
         ConvertParToStar : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -57,4 +58,21 @@ bool ConvertParToStar::DoCalculation( ) {
     wxPrintf("\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> ConvertParToStar::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input PAR file", "Filename of frealign par file to convert", "input.par"});
+    params.push_back(MyApp::InteractiveParameter{"Output cisTEM STAR file", "converted output in the new cisTEM format", "output.star"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted Microscope Voltage (kV)", "The microscope voltage in kV to be added to the output file", "300"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted Microscope Cs (mm)", "The microscope Cs in mm to be added to the output file", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted Amplitude Contrast", "The image amplitude contrast to be added to the output file", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel Size (A)", "The pixel size to be added to the output file", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam Tilt X (mrad)", "The horizontal beam tilt to be added to the output file", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam Tilt Y (mrad)", "The vertical beam tilt to be added to the output file", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Image Shift X", "The horizontal image shift to be added to the output file", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Image Shift Y", "The vertical image shift be added to the output file", "0.0"});
+
+    return params;
 }

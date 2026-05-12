@@ -21,6 +21,10 @@ class
     void DoInteractiveUserInput( );
     void ProgramSpecificInit( );
 
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const {
+        return { };
+    };
+
     void MyInteractiveProgramCleanup( ) { file_tracker.Cleanup( ); };
 
     wxString temp_directory;

@@ -4,8 +4,9 @@ class
         EstimateDataSetSSNR : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -212,4 +213,20 @@ bool EstimateDataSetSSNR::DoCalculation( ) {
     wxPrintf("\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> EstimateDataSetSSNR::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input particle stack", "Filename of input particle stack to estimate", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output SSNR curve", "Filename of output SSNR curve", "output.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Defocus Text File", "Text file with defocus values for each particle", "defocus.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel Size (A)", "The pixel size in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Acceleration voltage (keV)", "Acceleration voltage, in keV", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Objective lens spherical aberration", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Fraction of total contrast attributed to amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Number of samples for astigmatism", "number of directions to sample to take astigmatism into account", "18"});
+    params.push_back(MyApp::InteractiveParameter{"Molecular Mass in kDa", "The molecular weight of the sample", "350"});
+
+    return params;
 }

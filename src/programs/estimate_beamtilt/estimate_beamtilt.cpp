@@ -3,10 +3,12 @@
 class
         EstimateBeamTiltApp : public MyApp {
   public:
-    bool DoCalculation( );
+    bool                                     DoCalculation( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
+
 IMPLEMENT_APP(EstimateBeamTiltApp)
 
 // override the do calculation method which will be what is actually run..
@@ -52,4 +54,12 @@ bool EstimateBeamTiltApp::DoCalculation( ) {
     my_result.SetResult(5, result_data);
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> EstimateBeamTiltApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    (void)params; // no parameters detected
+
+    return params;
 }

@@ -4,8 +4,9 @@ class
         FilterImages : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -89,4 +90,16 @@ bool FilterImages::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> FilterImages::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Filter type: 1=highpass, 2=lowpass, 3=bandpass", "Highpass, Lowpass, or Bandpass", "1"});
+    params.push_back(MyApp::InteractiveParameter{"First sigma value", "distribution value from 0 to 0.5, for highpass side of bandpass", "0.25"});
+    params.push_back(MyApp::InteractiveParameter{"Second sigma value", "for lowpass side of bandpass", "0.25"});
+
+    return params;
 }

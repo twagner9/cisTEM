@@ -4,8 +4,9 @@ class
         DivideTwoStacks : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -86,4 +87,15 @@ bool DivideTwoStacks::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> DivideTwoStacks::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #1", "Filename of stack to be divided", "input_stack1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #2", "Filename of stack to be divided by", "input_stack2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "the divided result", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Replace denominator zeros with one?", "if yes, any zeros in the denominator will be replaced with one, this is to avoid infinity", "YES"});
+
+    return params;
 }

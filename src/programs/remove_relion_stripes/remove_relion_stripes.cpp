@@ -5,8 +5,9 @@ class
         RemoveRelionStripes : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -314,4 +315,15 @@ void SetVerticalLineMaskToOne(Image& image_to_set, int wanted_line) {
     for ( int counter = 0; counter < image_to_set.logical_y_dimension; counter++ ) {
         image_to_set.real_values[image_to_set.ReturnReal1DAddressFromPhysicalCoord(wanted_line, counter, 0)] = 1.0f;
     }
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> RemoveRelionStripes::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output MRC file name", "Filename of output image which should remove repeated edge pixels", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Dot Product Threshold", "", "0.9"});
+    params.push_back(MyApp::InteractiveParameter{"Invert image contrast?", "", "YES"});
+
+    return params;
 }

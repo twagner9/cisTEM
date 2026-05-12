@@ -4,8 +4,9 @@ class
         Project3DApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -368,4 +369,35 @@ bool Project3DApp::DoCalculation( ) {
     wxPrintf("\n\nProject3D: Normal termination\n\n");
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Project3DApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input reconstruction", "The 3D reconstruction from which projections are calculated", "my_reconstruction.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Angles from input .star file?", "If yes, angles and shifts will be obtained from an input star file, if not they will be made on a grid", "Yes"});
+    params.push_back(MyApp::InteractiveParameter{"Input cisTEM star filename", "The input parameter file, containing your particle alignment parameters", "my_parameters.star"});
+    params.push_back(MyApp::InteractiveParameter{"First particle to project (0 = first in list)", "The first particle in the stack for which a projection should be calculated", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last particle to project (0 = last in list)", "The last particle in the stack for which a projection should be calculated", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Apply CTF", "Should the CTF be applied to the output projections?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Apply shifts", "Should the particle translations be applied to the output projections?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Angular step for projection", "Angular step size for grid projection", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Output Star File", "The star file containing angles for the projections", "output_angles.star"});
+    params.push_back(MyApp::InteractiveParameter{"Output projection stack", "The output image stack, containing the 2D projections", "my_projection_stack.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of reconstruction (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam energy (keV)", "The energy of the electron beam used to image the sample in kilo electron volts", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Spherical aberration (mm)", "Spherical aberration of the objective lens in millimeters", "2.7"});
+    params.push_back(MyApp::InteractiveParameter{"Amplitude contrast", "Assumed amplitude contrast", "0.07"});
+    params.push_back(MyApp::InteractiveParameter{"Beam tilt along x [mrad]", "Beam tilt to be applied along the x axis in mrad", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Beam tilt along y [mrad]", "Beam tilt to be applied along the y axis in mrad", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Particle shift along x (A)", "Average particle shift along the x axis as a result of beam tilt in A", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Particle shift along y (A)", "Average particle shift along the y axis as a result of beam tilt in A", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Mask radius (A)", "Radius of a circular mask to be applied to the final reconstruction in Angstroms", "100.0"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted SNR", "The ratio of signal to noise variance after adding Gaussian noise and before masking", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Padding factor", "Factor determining how much the input volume is padded to improve projections", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Apply mask", "Should the particles be masked with the circular mask?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Add noise", "Should the Gaussian noise be added?", "No"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "When threading, what is the max threads to run", "1"});
+
+    return params;
 }

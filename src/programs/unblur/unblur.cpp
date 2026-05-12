@@ -13,8 +13,9 @@ class
         UnBlurApp : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -1101,4 +1102,45 @@ void unblur_refine_alignment(Image* input_stack, int number_of_images, int max_i
         profile_timing_refinement_method.lap("remake sum");
     }
     profile_timing_refinement_method.mark_entry_or_exit_point( );
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> UnBlurApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input stack filename", "The input file, containing your raw movie frames", "my_movie.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output aligned sum", "The output file, containing a weighted sum of the aligned input frames", "my_aligned_sum.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output shift text file", "The output text file, containing shifts in angstroms", "my_shifts.txt"});
+    params.push_back(MyApp::InteractiveParameter{"Pixel size of images (A)", "Pixel size of input images in Angstroms", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Output binning factor", "Output images will be binned (downsampled) by this factor relative to the input images", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Apply Exposure filter?", "Apply an exposure-dependent filter to frames before summing them", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Acceleration voltage (kV)", "Acceleration voltage during imaging", "300.0"});
+    params.push_back(MyApp::InteractiveParameter{"Exposure per frame (e/A^2)", "Exposure per frame, in electrons per square Angstrom", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Pre-exposure amount (e/A^2)", "Amount of pre-exposure prior to the first frame, in electrons per square Angstrom", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Set Expert Options?", "Set these for more control, hopefully not needed", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Minimum shift for initial search (A)", "Initial search will be limited to between the inner and outer radii.", "2.0"});
+    params.push_back(MyApp::InteractiveParameter{"Outer radius shift limit (A)", "The maximum shift of each alignment step will be limited to this value.", "80.0"});
+    params.push_back(MyApp::InteractiveParameter{"B-factor to apply to images (A^2)", "This B-Factor will be used to filter the reference prior to alignment", "1500"});
+    params.push_back(MyApp::InteractiveParameter{"Half-width of vertical Fourier mask", "The vertical line mask will be twice this size. The central cross mask helps\\nreduce problems by line artefacts from the detector", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Half-width of horizontal Fourier mask", "The horizontal line mask will be twice this size. The central cross mask helps\\nreduce problems by line artefacts from the detector", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Termination shift threshold (A)", "Alignment will iterate until the maximum shift is below this value", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Maximum number of iterations", "Alignment will stop at this number, even if the threshold shift is not reached", "20"});
+    params.push_back(MyApp::InteractiveParameter{"Restore Noise Power?", "Restore the power of the noise to the level it would be without exposure filtering", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Input stack is dark-subtracted?", "The input frames are already dark substracted", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Dark image filename", "The filename of the camera's dark reference image", "my_dark_reference.dm4"});
+    params.push_back(MyApp::InteractiveParameter{"Input stack is gain-corrected?", "The input frames are already gain-corrected", "yes"});
+    params.push_back(MyApp::InteractiveParameter{"Gain image filename", "The filename of the camera's gain reference image", "my_gain_reference.dm4"});
+    params.push_back(MyApp::InteractiveParameter{"First frame to use for sum", "You can use this to ignore the first n frames", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Last frame to use for sum (0 for last frame)", "You can use this to ignore the last n frames", "0"});
+    params.push_back(MyApp::InteractiveParameter{"Number of frames for running average", "use a running average of frames, useful for low SNR frames, must be odd", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Save Aligned Frames?", "If yes, save the aligned frames", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Output aligned frames filename", "The output file, containing your aligned movie frames", "my_aligned_frames.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Number of EER frames per image", "If the input movie is in EER format, we will average EER frames together so that each frame image for alignment has a reasonable exposure", "25"});
+    params.push_back(MyApp::InteractiveParameter{"EER super resolution factor", "Choose between 1 (no supersampling), 2, or 4 (image pixel size will be 4 times smaller that the camera phyiscal pixel)", "1"});
+    params.push_back(MyApp::InteractiveParameter{"Correct Magnification Distortion?", "If yes, a magnification distortion can be corrected", "no"});
+    params.push_back(MyApp::InteractiveParameter{"Distortion Angle (Degrees)", "The distortion angle in degrees", "0.0"});
+    params.push_back(MyApp::InteractiveParameter{"Major Scale", "The major axis scale factor", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Minor Scale", "The minor axis scale factor", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Max. threads to use for calculation", "when threading, what is the max threads to run", "1"});
+
+    return params;
 }

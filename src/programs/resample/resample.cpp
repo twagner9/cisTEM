@@ -4,8 +4,9 @@ class
         Resample : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -94,4 +95,17 @@ bool Resample::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Resample::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name", "Filename of input image", "input.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "Filename of output image", "output.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Is the input a volume", "Yes if it is a 3D", "NO"});
+    params.push_back(MyApp::InteractiveParameter{"Input pixel size in angstroms", "", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Wanted output pixel size in angstroms", "", "1.0"});
+    params.push_back(MyApp::InteractiveParameter{"Resampling tolerance", "allowed tolerance in the resampled pixel size", "0.001"});
+
+    return params;
 }

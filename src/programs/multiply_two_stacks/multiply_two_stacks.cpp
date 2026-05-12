@@ -4,8 +4,9 @@ class
         MultiplyTwoStacks : public MyApp {
 
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
   private:
 };
@@ -74,4 +75,14 @@ bool MultiplyTwoStacks::DoCalculation( ) {
     my_output_file.WriteHeader( );
 
     return true;
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MultiplyTwoStacks::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #1", "Filename of first stack to be multiplied", "input_stack1.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Input image file name #2", "Filename of second stack to be multiplied", "input_stack2.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Output image file name", "the multiplied result", "output.mrc"});
+
+    return params;
 }

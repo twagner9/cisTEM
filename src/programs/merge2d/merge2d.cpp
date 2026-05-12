@@ -3,11 +3,12 @@
 class
         Merge2DApp : public MyApp {
   public:
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
-    void ReadArrayHeader(wxString filename);
-    void ReadArrays(wxString filename);
-    void AddArrays( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    void                                     ReadArrayHeader(wxString filename);
+    void                                     ReadArrays(wxString filename);
+    void                                     AddArrays( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
     int      xy_dimensions;
     int      number_of_classes;
@@ -344,4 +345,14 @@ void Merge2DApp::AddArrays( ) {
         class_averages[current_class].AddImage(&temp_averages[current_class]);
         CTF_sums[current_class].AddImage(&temp_sums[current_class]);
     }
+}
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> Merge2DApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    params.push_back(MyApp::InteractiveParameter{"Output class averages", "The refined 2D class averages", "my_refined_classes.mrc"});
+    params.push_back(MyApp::InteractiveParameter{"Seed for input dump filenames for intermediate arrays", "The seed name of the dump files with the intermediate 2D class sums", "dump_file_seed_.dat"});
+    params.push_back(MyApp::InteractiveParameter{"Number of dump files", "The number of dump files that should be read from disk and merged", "1"});
+
+    return params;
 }

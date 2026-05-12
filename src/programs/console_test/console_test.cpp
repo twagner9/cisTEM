@@ -65,8 +65,9 @@ class
 
   public:
     // We need DoCalculation so we can have a bool return type for automated testing and a noop DoInteractiveUserInput to allow it to run from the console.
-    bool DoCalculation( );
-    void DoInteractiveUserInput( );
+    bool                                     DoCalculation( );
+    void                                     DoInteractiveUserInput( );
+    std::vector<MyApp::InteractiveParameter> GetInteractiveParameters( ) const override;
 
     bool test_has_passed;
     bool all_tests_have_passed;
@@ -2374,3 +2375,11 @@ void MyTestApp::WriteNumericTextFile(const char* filename) {
 #undef unset_cisTEM_LOG_WXPRINTF
 #undef cisTEM_LOG_WXPRINTF
 #endif
+
+// Auto-added by scripts/add_interactive_parameters.py
+std::vector<MyApp::InteractiveParameter> MyTestApp::GetInteractiveParameters( ) const {
+    std::vector<MyApp::InteractiveParameter> params;
+    (void)params; // no parameters detected
+
+    return params;
+}
