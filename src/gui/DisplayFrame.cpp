@@ -697,7 +697,14 @@ void DisplayFrame::OnDisplayControlsClick(wxCommandEvent& event) {
     text_ctrl->BeginBold( );
     text_ctrl->WriteText("3. Middle Mouse Button");
     text_ctrl->EndBold( );
-    text_ctrl->WriteText(": When in Single Image Mode (selected from the Options menu), dragging the mouse will shift the displayed window in the direction of the drag.");
+    text_ctrl->WriteText(": When in Single Image Mode (selected from the Options menu), dragging the mouse will shift the displayed window in the direction of the drag.\n\n");
+
+    text_ctrl->BeginBold( );
+    text_ctrl->BeginFontSize(12);
+    text_ctrl->WriteText("\nSaving with Scale Bar\n\n\n");
+    text_ctrl->EndFontSize( );
+    text_ctrl->EndBold( );
+    text_ctrl->WriteText("To save a displayed image or slice with a scale bar, first make sure the display is in Single Image Mode to enable the scale bar option.\n\nThen, select the Label Menu and select the scale bar option. A prompt will appear requesting the pixel size of the image or volume, and upon entering the scale bar will be drawn on the image, adjusting for different scaling levels.\n\nWhen saving as a PNG, the scale bar will be present on the image.\n");
 
     wxStdDialogButtonSizer* button_sizer = new wxStdDialogButtonSizer( );
     wxButton*               ok_button    = new wxButton(manual_dialog, wxID_OK);
