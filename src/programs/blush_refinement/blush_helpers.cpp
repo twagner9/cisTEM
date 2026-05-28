@@ -331,8 +331,6 @@ void ApplyBlush(Image& input_volume, const float& pixel_size, const float& mask_
                     // auto vol_output     = std::get<0>(initial_output)[0].clone( ) * weights;
                     // Extracts batches
                     torch::Tensor vol_outputs = std::get<0>(output).clone( );
-                    auto          t1          = std::chrono::high_resolution_clock::now( );
-                    total_forward_time += std::chrono::duration<double>(t1 - t0).count( );
 
                     for ( int i = 0; i < bi; i++ ) {
                         int bx = std::get<0>(batch_coords[i]);
