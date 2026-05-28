@@ -2000,11 +2000,11 @@ void AbInitioManager::SetupPrepareStackJob( ) {
             int number_of_classes = active_number_of_2d_classes;
             int images_per_class  = active_images_per_class;
 
-#ifdef ENABLE_BLUSH
+#ifdef cisTEM_USING_BLUSH
             constexpr int MIN_BLUSH_BOX_SIZE = 86;
             if ( apply_blush_denoising && resample_box && wanted_output_box_size < MIN_BLUSH_BOX_SIZE ) {
                 apply_blush_denoising = false;
-                my_parent->WriteErrorText(wxString::Format("Wanted output box size is less than minimum %i, so blush inference will be disabled.", MIN_BLUSH_BOX_SIZE));
+                my_parent->WriteErrorText(wxString::Format("Wanted output box (%i) size is less than minimum %i, so blush inference will be disabled.", wanted_output_box_size, MIN_BLUSH_BOX_SIZE));
             }
 #endif
 
@@ -2069,7 +2069,7 @@ void AbInitioManager::SetupPrepareStackJob( ) {
             // TODO: add check for the wanted_output_box_size and compare against the min model_block_size + stride_size
             bool process_a_subset = true;
 
-#ifdef ENABLE_BLUSH
+#ifdef cisTEM_USING_BLUSH
             constexpr int MIN_BLUSH_BOX_SIZE = 86;
             if ( resample_box && wanted_output_box_size < MIN_BLUSH_BOX_SIZE ) {
                 apply_blush_denoising = false;

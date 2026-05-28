@@ -1,12 +1,10 @@
 //#include "../core/core_headers.h"
 #include "../core/gui_core_headers.h"
-// #ifdef ENABLE_BLUSH
-#undef UNCHECKED
-#undef N_
+#ifdef cisTEM_USING_BLUSH
 #include "../programs/blush_refinement/blush_helpers.h"
 #include <atomic>
 #include <memory>
-// #endif
+#endif
 
 extern MyRefinementPackageAssetPanel* refinement_package_asset_panel;
 extern MyRefinementResultsPanel*      refinement_results_panel;
