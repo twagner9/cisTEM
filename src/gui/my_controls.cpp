@@ -1712,30 +1712,22 @@ wxThread::ExitCode AutoMaskerThread::Entry( ) {
 				*/
                 const int total_blush_iterations = pow(((input_image.logical_x_dimension - block_size) / stride_size) + 1, 3);
                 bool      skip_blush             = (total_blush_iterations <= 1) ? true : false;
-                if ( ! skip_blush ) {
-                    BlushHelpers::ApplyBlush(input_image, pixel_size, mask_radius, total_blush_iterations, maximum_num_threads, stop_flag,
-                                             [this, total_blush_iterations](int percent, double seconds_remaining) {
-                                                 // Check if GUI wants to terminate process; if so, return false so we kill the current process in the long-running blush function
-                                                 // so resources are properly discarded
-                                                 if ( stop_flag && stop_flag->load(std::memory_order_relaxed) ) {
-                                                     return false;
-                                                 }
+                BlushHelpers::ApplyBlush(input_image, pixel_size, mask_radius, total_blush_iterations, maximum_num_threads, stop_flag,
+                                         [this, total_blush_iterations](int percent, double seconds_remaining) {
+                                             // Check if GUI wants to terminate process; if so, return false so we kill the current process in the long-running blush function
+                                             // so resources are properly discarded
+                                             if ( stop_flag && stop_flag->load(std::memory_order_relaxed) ) {
+                                                 return false;
+                                             }
 
-                                                 auto evt = new wxThreadEvent(EVT_UPDATE_MASK_THREAD_PROGRESS);
-                                                 evt->SetInt(percent);
-                                                 evt->SetExtraLong(seconds_remaining);
-                                                 wxQueueEvent(main_thread_pointer, evt);
-                                                 return true;
-                                             });
-                    if ( stop_flag && stop_flag->load(std::memory_order_relaxed) ) {
-                        return (wxThread::ExitCode)0;
-                    }
-                }
-                else {
-                    auto     evt = new wxThreadEvent(EVT_WORKER_THREAD_MESSAGE);
-                    wxString msg = wxString::Format("Error: box size %i (minimum required: 96) too small for blush inference with block size of 64 and stride size of 20. Skipping blush...", input_image.logical_x_dimension);
-                    evt->SetString(msg);
-                    wxQueueEvent(main_thread_pointer, evt);
+                                             auto evt = new wxThreadEvent(EVT_UPDATE_MASK_THREAD_PROGRESS);
+                                             evt->SetInt(percent);
+                                             evt->SetExtraLong(seconds_remaining);
+                                             wxQueueEvent(main_thread_pointer, evt);
+                                             return true;
+                                         });
+                if ( stop_flag && stop_flag->load(std::memory_order_relaxed) ) {
+                    return (wxThread::ExitCode)0;
                 }
             }
 #endif
@@ -1878,7 +1870,6 @@ wxThread::ExitCode Multiply3DMaskerThread::Entry( ) {
 #endif
 
             input_image.ApplyMask(mask_image, cosine_edge_width / pixel_size, weight_outside_mask, pixel_size / low_pass_filter_radius, pixel_size / 40.0);
-
             output_file.OpenFile(output_files.Item(class_counter).ToStdString( ), true);
             input_image.WriteSlices(&output_file, 1, input_image.logical_z_dimension);
             output_file.CloseFile( );

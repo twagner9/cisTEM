@@ -192,7 +192,7 @@ class AbInitio3DPanel : public AbInitio3DPanelParent {
     void OnOrthThreadComplete(ReturnProcessedImageEvent& my_event);
     void OnVolumeResampled(ReturnProcessedImageEvent& my_event);
     void OnImposeSymmetryThreadComplete(wxThreadEvent& event);
-    void OnWorkerThreadMessage(wxThreadEvent& event);
+    // void OnWorkerThreadMessage(wxThreadEvent& event);
 
   public:
     void Reset( );

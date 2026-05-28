@@ -100,7 +100,16 @@ void DispatchMasking(PanelType* panel) {
 
         for ( size_t filename_counter = 0; filename_counter < panel->my_refinement_manager.current_reference_filenames.GetCount( ); filename_counter++ ) {
             wxFileName ref = panel->my_refinement_manager.current_reference_filenames.Item(filename_counter);
-            wxString   out = main_frame->ReturnAutoRefine3DScratchDirectory( ) + ref.GetName( ) + "_masked.mrc";
+
+            // Make sure output files are going to the right Scratch directory -- AutoRefine3D or ManualRefine3D
+            wxString out;
+            if constexpr ( std::is_same_v<PanelType, AutoRefine3DPanel> ) {
+                out = main_frame->ReturnAutoRefine3DScratchDirectory( ) + ref.GetName( ) + "_masked.mrc";
+            }
+            else if constexpr ( std::is_same_v<PanelType, MyRefine3DPanel> ) {
+                out = main_frame->ReturnRefine3DScratchDirectory( ) + ref.GetName( ) + "_masked.mrc";
+            }
+
             params.input_files.Add(ref.GetFullPath( ));
             params.output_files.Add(out);
         }
@@ -117,7 +126,11 @@ void DispatchMasking(PanelType* panel) {
             }
         }
         else {
-            float current_res           = panel->my_refinement_manager.input_refinement->class_refinement_results[0].class_resolution_statistics.ReturnEstimatedResolution( );
+            float current_res = panel->my_refinement_manager.input_refinement->class_refinement_results[0].class_resolution_statistics.ReturnEstimatedResolution(true);
+            if constexpr ( std::is_same_v<PanelType, AutoRefine3DPanel> ) {
+                if ( current_res > panel->my_refinement_manager.class_high_res_limits[0] )
+                    current_res = panel->my_refinement_manager.class_high_res_limits[0];
+            }
             params.estimated_resolution = current_res;
         }
     }
@@ -147,6 +160,11 @@ void DispatchMasking(PanelType* panel) {
     }
 
     panel->masking_thread = MaskingService::StartMasking(panel, params);
+
+    // If process didn't fail, ensure that subsequent iterations use the proper files as references.
+    if ( panel->masking_thread ) {
+        panel->my_refinement_manager.current_reference_filenames = params.output_files;
+    }
 }
 
 template void DispatchMasking<AutoRefine3DPanel>(AutoRefine3DPanel* panel);

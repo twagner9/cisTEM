@@ -905,7 +905,7 @@ if ENABLE_BLUSH
 refine3d_SOURCES += programs/blush_refinement/blush_model.cpp
 endif
 refine3d_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-refine3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
+refine3d_CPPFLAGS = $(WX_CPPFLAGS_BASE)
 refine3d_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) 
 refine3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
@@ -1166,7 +1166,7 @@ azimuthal_average_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 if ENABLE_BLUSHREFINEMENT_AM
 blush_refinement_SOURCES  = programs/blush_refinement/blush_model.cpp programs/blush_refinement/blush_helpers.cpp programs/blush_refinement/blush_refinement.cpp
 blush_refinement_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
+blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) # -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
 blush_refinement_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) #-L/mnt/libtorch/lib -ltorch -ltorch_cpu -lc10
 blush_refinement_LIBTOOLFLAGS= $(LIBTOOL_FLAGS)
 endif

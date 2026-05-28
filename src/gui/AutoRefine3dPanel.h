@@ -191,7 +191,7 @@ class AutoRefine3DPanel : public AutoRefine3DPanelParent {
 
     void OnMaskerThreadComplete(wxThreadEvent& my_event);
     void OnOrthThreadComplete(ReturnProcessedImageEvent& my_event);
-    void OnWorkerThreadMessage(wxThreadEvent& event);
+    // void OnWorkerThreadMessage(wxThreadEvent& event);
 
     int active_mask_thread_id;
     int next_thread_id;

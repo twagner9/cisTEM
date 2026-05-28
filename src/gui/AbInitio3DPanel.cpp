@@ -42,7 +42,7 @@ AbInitio3DPanel::AbInitio3DPanel(wxWindow* parent)
     Bind(EVT_UPDATE_MASK_THREAD_PROGRESS, &AbInitio3DPanel::OnUpdateMaskerThreadProgress, this);
     Bind(wxEVT_RESAMPLE_VOLUME_EVENT, &AbInitio3DPanel::OnVolumeResampled, this);
     Bind(wxEVT_COMMAND_IMPOSESYMMETRY_DONE, &AbInitio3DPanel::OnImposeSymmetryThreadComplete, this);
-    Bind(EVT_WORKER_THREAD_MESSAGE, &AbInitio3DPanel::OnWorkerThreadMessage, this);
+    // Bind(EVT_WORKER_THREAD_MESSAGE, &AbInitio3DPanel::OnWorkerThreadMessage, this);
     FillRefinementPackagesComboBox( );
 
     // limits
@@ -2000,6 +2000,14 @@ void AbInitioManager::SetupPrepareStackJob( ) {
             int number_of_classes = active_number_of_2d_classes;
             int images_per_class  = active_images_per_class;
 
+#ifdef ENABLE_BLUSH
+            constexpr int MIN_BLUSH_BOX_SIZE = 86;
+            if ( apply_blush_denoising && resample_box && wanted_output_box_size < MIN_BLUSH_BOX_SIZE ) {
+                apply_blush_denoising = false;
+                my_parent->WriteErrorText(wxString::Format("Wanted output box size is less than minimum %i, so blush inference will be disabled.", MIN_BLUSH_BOX_SIZE));
+            }
+#endif
+
             my_parent->current_job_package.AddJob("ttttffbiiibbii", input_particle_images.ToUTF8( ).data( ),
                                                   output_classaverage_images.ToUTF8( ).data( ),
                                                   input_parameter_file.ToUTF8( ).data( ),
@@ -2058,7 +2066,16 @@ void AbInitioManager::SetupPrepareStackJob( ) {
             float    mask_radius            = active_global_mask_radius;
             bool     resample_box           = true;
             int      wanted_output_box_size = ReturnClosestFactorizedUpper(ReturnSafeBinnedBoxSize(active_refinement_package->stack_box_size, binning_factor), 3, true);
-            bool     process_a_subset       = true;
+            // TODO: add check for the wanted_output_box_size and compare against the min model_block_size + stride_size
+            bool process_a_subset = true;
+
+#ifdef ENABLE_BLUSH
+            constexpr int MIN_BLUSH_BOX_SIZE = 86;
+            if ( resample_box && wanted_output_box_size < MIN_BLUSH_BOX_SIZE ) {
+                apply_blush_denoising = false;
+                my_parent->WriteErrorText(wxString::Format("Wanted output box size is less than minimum %i. Blush inference will be disabled.", MIN_BLUSH_BOX_SIZE));
+            }
+#endif
 
             FirstLastParticleForJob(first_particle, last_particle, number_of_particles, counter + 1, number_of_refinement_jobs);
 
@@ -2601,11 +2618,11 @@ void AbInitio3DPanel::OnImposeSymmetryThreadComplete(wxThreadEvent& event) {
     }
 }
 
-void AbInitio3DPanel::OnWorkerThreadMessage(wxThreadEvent& event) {
-    wxString msg = event.GetString( );
-    WriteErrorText(msg);
-    my_refinement_manager.apply_blush_denoising = false; // skip future calls to blush if we can't do it
-}
+// void AbInitio3DPanel::OnWorkerThreadMessage(wxThreadEvent& event) {
+//     wxString msg = event.GetString( );
+//     WriteErrorText(msg);
+//     my_refinement_manager.apply_blush_denoising = false; // skip future calls to blush if we can't do it
+// }
 
 void AbInitio3DPanel::OnVolumeResampled(ReturnProcessedImageEvent& my_event) {
     // in theory the long data should contain a pointer to wxPanel that we are going to add to the notebook..

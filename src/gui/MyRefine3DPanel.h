@@ -195,7 +195,7 @@ class MyRefine3DPanel : public Refine3DPanel {
 
     void OnOrthThreadComplete(ReturnProcessedImageEvent& my_event);
     void OnMaskerThreadComplete(wxThreadEvent& my_event);
-    void OnWorkerThreadMessage(wxThreadEvent& event);
+    // void OnWorkerThreadMessage(wxThreadEvent& event);
 
     // Move these to public because DispatchMasking in MaskingService.cpp needs access
     int active_mask_thread_id;

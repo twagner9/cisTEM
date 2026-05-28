@@ -135,7 +135,8 @@ std::tuple<torch::Tensor, torch::Tensor> BlushModel::forward(torch::Tensor grid,
     auto output = grid_standard - nn.index({torch::indexing::Slice( ), 0});
     output      = output * (std + 1e-12) + mean;
 
-    torch::Tensor mask_logit = C_MASK_INFER ? nn.slice(1, 1, 2) : torch::Tensor( );
+    // torch::Tensor mask_logit = C_MASK_INFER ? nn.slice(1, 1, 2) : torch::Tensor( );
+    torch::Tensor mask_logit = C_MASK_INFER ? nn.index({torch::indexing::Slice( ), 1}) : torch::Tensor( );
     return {output, mask_logit};
 }
 

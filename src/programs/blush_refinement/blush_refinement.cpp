@@ -559,10 +559,16 @@ bool BlushRefinement::DoCalculation( ) {
     ProgressBar* progress_bar = new ProgressBar(total_blush_iterations);
     wxPrintf("\n\nBlushing %s...\n\n", ifname);
     auto stop_flag = std::make_shared<std::atomic<bool>>(false);
+    auto startTime = std::chrono::high_resolution_clock::now( );
+    //double totalForwardTime =
     BlushHelpers::ApplyBlush(input_volume, pixel_size, mask_radius, total_blush_iterations, max_threads, stop_flag, [progress_bar](int percent, long seconds_remaining) {
         progress_bar->Update(percent + 1);
         return true;
     });
+    auto   endTime  = std::chrono::high_resolution_clock::now( );
+    double duration = std::chrono::duration<double>(endTime - startTime).count( );
+    // wxPrintf("\n\ntotalForwardTime == %g min\naverage forward time == %g min\n", totalForwardTime / 60, (totalForwardTime / 60) / total_blush_iterations);
+    wxPrintf("Total run time: %g\n\n", duration);
     delete progress_bar;
     MRCFile ofile(ofname, true);
     input_volume.WriteSlices(&ofile, 1, box_size);

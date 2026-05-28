@@ -1,6 +1,8 @@
 #ifndef _SRC_PROGRAMS_BLUSH_REFINEMENT_BLUSH_HELPERS_H
 #define _SRC_PROGRAMS_BLUSH_REFINEMENT_BLUSH_HELPERS_H
 
+#undef UNCHECKED
+#undef N_
 #include "../../../include/libtorch/libtorch_push_macros.h"
 #include <torch/torch.h>
 #include "../../../include/libtorch/libtorch_pop_macros.h"
