@@ -695,10 +695,14 @@ void MyRefine3DPanel::OnUpdateUI(wxUpdateUIEvent& event) {
                     if ( EnableBlushYesButton->GetValue( ) ) {
                         BlushThreadsStaticText->Enable(true);
                         BlushThreadsSpinCtrl->Enable(true);
+                        BlushBatchSizeStaticText->Enable(true);
+                        BlushBatchSizeSpinCtrl->Enable(true);
                     }
                     else {
                         BlushThreadsStaticText->Enable(false);
                         BlushThreadsSpinCtrl->Enable(false);
+                        BlushBatchSizeStaticText->Enable(false);
+                        BlushBatchSizeSpinCtrl->Enable(false);
                     }
                 }
                 else {
@@ -1133,6 +1137,7 @@ void RefinementManager::BeginRefinementCycle( ) {
     active_centre_mass                   = my_parent->AutoCenterYesRadioButton->GetValue( );
 #ifdef cisTEM_USING_BLUSH
     apply_blush_denoising = my_parent->EnableBlushYesButton->GetValue( );
+    user_blush_batch_size = my_parent->BlushBatchSizeSpinCtrl->GetValue( );
     num_blush_threads     = my_parent->BlushThreadsSpinCtrl->GetValue( );
 #endif
 

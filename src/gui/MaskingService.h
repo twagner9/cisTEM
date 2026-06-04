@@ -44,7 +44,8 @@ struct MaskingParams {
     int thread_id         = -1;
 
     // Control
-    std::shared_ptr<std::atomic<bool>> stop_flag = nullptr;
+    int                                batch_size = 1;
+    std::shared_ptr<std::atomic<bool>> stop_flag  = nullptr;
 };
 
 class MaskingService {

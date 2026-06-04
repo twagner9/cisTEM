@@ -26,7 +26,9 @@ AC_DEFUN([submodule_Blush], [
 	
 
 		if test "x$libtorch_path" != "x"; then
-			BLUSH_CPPFLAGS="-I$libtorch_path/include/torch/csrc/api/include -I$libtorch_path/include"
+			# -isystem indicates that the library is a system library, and automatically suppresses its warnings to prevent
+			# flooding the compile output with warnings that are from the library rather than the relevant code.
+			BLUSH_CPPFLAGS="-isystem $libtorch_path/include/torch/csrc/api/include -isystem $libtorch_path/include"
 			BLUSH_LDFLAGS="-L$libtorch_path/lib -Wl,-rpath,$libtorch_path/lib"
 		fi
 	

@@ -577,10 +577,14 @@ void AbInitio3DPanel::OnUpdateUI(wxUpdateUIEvent& event) {
                 if ( EnableBlushYesButton->GetValue( ) ) {
                     BlushThreadsStaticText->Enable(true);
                     BlushThreadsSpinCtrl->Enable(true);
+                    BlushBatchSizeStaticText->Enable(true);
+                    BlushBatchSizeSpinCtrl->Enable(true);
                 }
                 else {
                     BlushThreadsStaticText->Enable(false);
                     BlushThreadsSpinCtrl->Enable(false);
+                    BlushBatchSizeStaticText->Enable(false);
+                    BlushBatchSizeSpinCtrl->Enable(false);
                 }
             }
 
@@ -656,7 +660,6 @@ void AbInitio3DPanel::OnUpdateUI(wxUpdateUIEvent& event) {
 }
 
 void AbInitio3DPanel::OnUpdateMaskerThreadProgress(wxThreadEvent& event) {
-    wxPrintf("DEBUG: OnUpdateMaskerThreadProgress executing. Percent: %i\n\n", event.GetInt( ));
     ProgressBar->SetValue(event.GetInt( ));
     wxTimeSpan time_remaining = wxTimeSpan(0, 0, event.GetExtraLong( ));
     TimeRemainingText->SetLabel(time_remaining.Format("Time Remaining : %Hh:%Mm:%Ss"));
@@ -1002,6 +1005,7 @@ void AbInitioManager::BeginRefinementCycle( ) {
 
 #ifdef cisTEM_USING_BLUSH
     apply_blush_denoising = my_parent->EnableBlushYesButton->GetValue( );
+    user_blush_batch_size = my_parent->BlushBatchSizeSpinCtrl->GetValue( );
     num_blush_threads     = my_parent->BlushThreadsSpinCtrl->GetValue( );
 #endif
 

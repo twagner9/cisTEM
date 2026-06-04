@@ -1693,24 +1693,16 @@ wxThread::ExitCode AutoMaskerThread::Entry( ) {
             input_file.OpenFile(input_files.Item(class_counter).ToStdString( ), false);
             input_image.ReadSlices(&input_file, 1, input_file.ReturnNumberOfSlices( ));
             input_file.CloseFile( );
-// TODO: blush applied to all volumes here -- then mask
+
 #ifdef cisTEM_USING_BLUSH
             if ( apply_blush_denoising ) {
 
-                // TODO: adjust this for when input_files.GetCount() is greater than 1 (the refinement is operating on more than one class)
                 constexpr int stride_size{20};
                 constexpr int block_size{64};
 
-                /* FIXME: ab initio can have box sizes even smaller than the particle stack box size; this means we have to handle this case when calculating num iterations.
-					In fact, this raises a larger question about how to handle smaller boxes. 64 block and 20 stride seems like a good base, but if the box is
-					much smaller or much larger, it may make more sense to allow user specification of the strides/blocks. The question is whether this will
-					affect the blush weights as loaded -- a question that will require future visitation.
-
-					For now, let's just skip blush and tell the user their box size is too small.
-				*/
-                const int total_blush_iterations = pow(((input_image.logical_x_dimension - block_size) / stride_size) + 1, 3);
+                const int total_blush_iterations = pow(((input_image.logical_x_dimension - block_size) / stride_size) + 1, 3) / batch_size;
                 bool      skip_blush             = (total_blush_iterations <= 1) ? true : false;
-                BlushHelpers::ApplyBlush(input_image, pixel_size, mask_radius, total_blush_iterations, maximum_num_threads, stop_flag,
+                BlushHelpers::ApplyBlush(input_image, pixel_size, mask_radius, total_blush_iterations, batch_size, maximum_num_threads, stop_flag,
                                          [this, total_blush_iterations](int percent, double seconds_remaining) {
                                              // Check if GUI wants to terminate process; if so, return false so we kill the current process in the long-running blush function
                                              // so resources are properly discarded
@@ -1847,7 +1839,7 @@ wxThread::ExitCode Multiply3DMaskerThread::Entry( ) {
                 constexpr int stride_size{20};
                 constexpr int block_size{64};
                 const int     total_blush_iterations = pow(((input_image.logical_x_dimension - block_size) / stride_size) + 1, 3);
-                BlushHelpers::ApplyBlush(input_image, pixel_size, mask_radius, total_blush_iterations, maximum_num_threads, stop_flag,
+                BlushHelpers::ApplyBlush(input_image, pixel_size, mask_radius, total_blush_iterations, batch_size, maximum_num_threads, stop_flag,
                                          [this, total_blush_iterations](int percent, double seconds_remaining) {
                                              // Check if GUI wants to terminate process; if so, return false so we kill the current process in the long-running blush function
                                              // so resources are properly discarded

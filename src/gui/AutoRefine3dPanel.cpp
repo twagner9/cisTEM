@@ -37,7 +37,6 @@ AutoRefine3DPanel::AutoRefine3DPanel(wxWindow* parent)
     EnableBlushStaticText->Enable(true);
     EnableBlushYesButton->Enable(true);
     EnableBlushNoButton->Enable(true);
-    BlushThreadsSpinCtrl->Enable(true);
 #endif
 
     ExpertPanel->SetMinSize(input_size);
@@ -562,10 +561,14 @@ void AutoRefine3DPanel::OnUpdateUI(wxUpdateUIEvent& event) {
                 if ( EnableBlushYesButton->GetValue( ) ) {
                     BlushThreadsStaticText->Enable(true);
                     BlushThreadsSpinCtrl->Enable(true);
+                    BlushBatchSizeStaticText->Enable(true);
+                    BlushBatchSizeSpinCtrl->Enable(true);
                 }
                 else {
                     BlushThreadsStaticText->Enable(false);
                     BlushThreadsSpinCtrl->Enable(false);
+                    BlushBatchSizeStaticText->Enable(false);
+                    BlushBatchSizeSpinCtrl->Enable(false);
                 }
             }
 
@@ -832,14 +835,11 @@ void AutoRefinementManager::BeginRefinementCycle( ) {
 
 #ifdef cisTEM_USING_BLUSH
     apply_blush_denoising = my_parent->EnableBlushYesButton->GetValue( );
+    user_blush_batch_size = my_parent->BlushBatchSizeSpinCtrl->GetValue( );
     num_blush_threads     = my_parent->BlushThreadsSpinCtrl->GetValue( );
 #endif
 
-    // DEBUG
-    wxPrintf("apply_blush_denoising: %s\n", (apply_blush_denoising) ? "true" : "false");
-
-    if ( apply_blush_denoising )
-        MyDebugAssertFalse(active_should_auto_mask && active_should_mask, "Masking should either be from user file, or auto, not both");
+    MyDebugAssertFalse(active_should_auto_mask && active_should_mask, "Masking should either be from user file, or auto, not both");
 
     reference_3d_contains_all_particles = false;
 
@@ -984,8 +984,7 @@ void AutoRefinementManager::BeginRefinementCycle( ) {
 
     //my_parent->Thaw();
 
-    // DEBUG: cancel out blushing in the first iteration, see if output ends up the same as merge3d version without this
-    if ( active_should_auto_mask == true || active_should_mask == true || apply_blush_denoising ) {
+    if ( active_should_auto_mask || active_should_mask || apply_blush_denoising ) {
         // my_parent->Freeze( );
         if ( apply_blush_denoising ) {
             my_parent->NumberConnectedText->SetLabel("Running Blush...");
@@ -1750,7 +1749,6 @@ void AutoRefinementManager::ProcessJobResult(JobResult* result_to_process) {
         }
     }
     else if ( running_job_type == MERGE ) {
-        // TODO: add logic for tracking blush progress in progress bar?
         //	wxPrintf("received merge result!\n");
 
         // add to the correct resolution statistics..

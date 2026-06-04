@@ -115,6 +115,8 @@ class AutoRefine3DPanelParent : public JobPanel
 		wxRadioButton* EnableBlushNoButton;
 		wxStaticText* BlushThreadsStaticText;
 		wxSpinCtrl* BlushThreadsSpinCtrl;
+		wxStaticText* BlushBatchSizeStaticText;
+		wxSpinCtrl* BlushBatchSizeSpinCtrl;
 		wxPanel* InfoPanel;
 		wxRichTextCtrl* InfoText;
 		wxStaticLine* m_staticline11;

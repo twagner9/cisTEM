@@ -273,6 +273,7 @@ noinst_LIBRARIES = libcore.a libguicore.a
 # Min needed for GUI
 bin_PROGRAMS =  cisTEM_job_control \
                 cisTEM \
+				cisTEM_display \
                 unblur \
                 reconstruct3d \
                 merge3d \
@@ -291,24 +292,10 @@ bin_PROGRAMS =  cisTEM_job_control \
                 refine_ctf \
                 estimate_beamtilt \
                 warp_to_cistem \
-                create_mask \
-                invert_hand \
-                quick_test \
-                append_stacks \
-                cisTEM_display \
-                cisTEM \
-                gui_test \
-                convert_star_to_binary \
-                convert_binary_to_star \
-                convert_eer_to_mrc \
-                azimuthal_average \
-                normalize_stack \
-                print_stack_statistics \
-                combine_stacks_by_star \
                 match_template \
                 refine_template \
                 make_template_result \
-                prepare_stack_matchtemplate
+				prepare_stack_matchtemplate
 
 
 
@@ -794,7 +781,7 @@ cisTEM_SOURCES += gui/WebViewPanel.cpp
 endif
 
 cisTEM_CXXFLAGS = $(WX_CPPFLAGS)
-cisTEM_CPPFLAGS = $(WX_CPPFLAGS) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186 
+cisTEM_CPPFLAGS = $(WX_CPPFLAGS)
 cisTEM_LDADD    = $(BLUSH_LIBS) libguicore.a libcore.a $(WX_LIBS) $(MKL_LIBS)
 cisTEM_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
@@ -884,7 +871,7 @@ merge3d_SOURCES += programs/blush_refinement/blush_model.cpp
 endif
 
 merge3d_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-merge3d_CPPFLAGS = $(WX_CPPFLAGS_BASE) #-diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186 
+merge3d_CPPFLAGS = $(WX_CPPFLAGS_BASE)
 merge3d_LDADD    = $(BLUSH_LIBS) libcore.a  $(WX_LIBS_BASE) $(MKL_LIBS)
 merge3d_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 
@@ -1166,8 +1153,8 @@ azimuthal_average_LIBTOOLFLAGS = $(LIBTOOL_FLAGS)
 if ENABLE_BLUSHREFINEMENT_AM
 blush_refinement_SOURCES  = programs/blush_refinement/blush_model.cpp programs/blush_refinement/blush_helpers.cpp programs/blush_refinement/blush_refinement.cpp
 blush_refinement_CXXFLAGS = $(WX_CPPFLAGS_BASE)
-blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS) # -diag-disable 1011 -diag-disable 2196 -diag-disable 1628 -diag-disable 186
-blush_refinement_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS) #-L/mnt/libtorch/lib -ltorch -ltorch_cpu -lc10
+blush_refinement_CPPFLAGS = $(WX_CPPFLAGS_BASE) $(BLUSH_CPPFLAGS)
+blush_refinement_LDADD    = $(BLUSH_LIBS) libcore.a $(WX_LIBS_BASE) $(MKL_LIBS)
 blush_refinement_LIBTOOLFLAGS= $(LIBTOOL_FLAGS)
 endif
 

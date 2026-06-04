@@ -25,6 +25,7 @@ wxThread* MaskingService::StartMasking(wxWindow* parent, MaskingParams& params) 
                 params.mask_radius,
                 params.stop_flag,
                 params.apply_blush,
+                params.batch_size,
                 params.num_blush_threads,
                 params.thread_id);
     }
@@ -38,6 +39,7 @@ wxThread* MaskingService::StartMasking(wxWindow* parent, MaskingParams& params) 
                 params.mask_radius,
                 params.stop_flag,
                 params.apply_blush,
+                params.batch_size,
                 params.num_blush_threads,
                 params.thread_id,
                 params.estimated_resolution);
@@ -67,6 +69,7 @@ void DispatchMasking(PanelType* panel) {
 
     // Vals common between panel managers first
     params.apply_blush       = panel->my_refinement_manager.apply_blush_denoising;
+    params.batch_size        = panel->my_refinement_manager.user_blush_batch_size;
     params.num_blush_threads = panel->my_refinement_manager.num_blush_threads;
     params.pixel_size        = panel->my_refinement_manager.input_refinement->resolution_statistics_pixel_size;
 

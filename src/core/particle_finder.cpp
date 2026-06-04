@@ -2,7 +2,7 @@
 
 // Use this define to dump intermediate files
 #ifdef DEBUG
-// #define dump_intermediate_files
+#define dump_intermediate_files
 #endif
 
 // We probably don't need to write out PLT files

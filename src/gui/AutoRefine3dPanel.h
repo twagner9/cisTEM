@@ -118,6 +118,7 @@ class AutoRefinementManager {
     //	void StartReconstruction();
 
     bool apply_blush_denoising = false;
+    int  user_blush_batch_size = 1;
     int  num_blush_threads     = 1;
 };
 

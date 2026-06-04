@@ -13,7 +13,7 @@ namespace BlushHelpers {
 torch::Tensor get_local_std_dev(torch::Tensor grid, int size);
 torch::Tensor make_weight_box(const int& block_size, int margin);
 torch::Tensor generate_radial_mask(const int& box_size, const float& radius, const int& mask_edge_width);
-void          ApplyBlush(Image& input_volume, const float& pixel_size, const float& mask_radius, const int& total_iterations, const int& max_threads, std::shared_ptr<std::atomic<bool>> stop_flag, std::function<bool(int percentage, long seconds_remaining)> progress_callback);
+void          ApplyBlush(Image& input_volume, const float& pixel_size, const float& mask_radius, const int& total_iterations, const int& batch_size, const int& max_threads, std::shared_ptr<std::atomic<bool>> stop_flag, std::function<bool(int percentage, long seconds_remaining)> progress_callback);
 } // namespace BlushHelpers
 
 #endif

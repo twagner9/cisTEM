@@ -115,6 +115,8 @@ class AbInitio3DPanelParent : public JobPanel
 		wxRadioButton* EnableBlushNoButton;
 		wxStaticText* BlushThreadsStaticText;
 		wxSpinCtrl* BlushThreadsSpinCtrl;
+		wxStaticText* BlushBatchSizeStaticText;
+		wxSpinCtrl* BlushBatchSizeSpinCtrl;
 		wxPanel* OutputTextPanel;
 		wxTextCtrl* output_textctrl;
 		AbInitioPlotPanel* PlotPanel;

@@ -1,4 +1,3 @@
-// #include "cistem_config.h" // include to ensure that the macros are found; must do before core_headers.h in this particular scenario
 #include "../../core/core_headers.h"
 
 class

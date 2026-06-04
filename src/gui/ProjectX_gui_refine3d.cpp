@@ -1423,6 +1423,25 @@ Refine3DPanel::Refine3DPanel( wxWindow* parent, wxWindowID id, const wxPoint& po
 
 	fgSizer1->Add( bSizer98, 1, wxEXPAND, 5 );
 
+	BlushBatchSizeStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush Batch Size: "), wxDefaultPosition, wxDefaultSize, 0 );
+	BlushBatchSizeStaticText->Wrap( -1 );
+	BlushBatchSizeStaticText->Enable( false );
+	BlushBatchSizeStaticText->SetToolTip( wxT("Smaller batch sizes give better inference (de-noising), but larger batch sizes are faster. ") );
+
+	fgSizer1->Add( BlushBatchSizeStaticText, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer99;
+	bSizer99 = new wxBoxSizer( wxVERTICAL );
+
+	BlushBatchSizeSpinCtrl = new wxSpinCtrl( ExpertPanel, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 0 );
+	BlushBatchSizeSpinCtrl->Enable( false );
+	BlushBatchSizeSpinCtrl->SetToolTip( wxT("Smaller batch sizes give better inference (de-noising), but larger batch sizes are faster. ") );
+
+	bSizer99->Add( BlushBatchSizeSpinCtrl, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( bSizer99, 1, wxEXPAND, 5 );
+
 
 	InputSizer->Add( fgSizer1, 1, wxEXPAND, 5 );
 
