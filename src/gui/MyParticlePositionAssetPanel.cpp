@@ -1,5 +1,6 @@
 //#include "../core/core_headers.h"
 #include "../core/gui_core_headers.h"
+#include "MyPickingJobExportDialog.h"
 
 extern MyImageAssetPanel* image_asset_panel;
 
@@ -8,6 +9,7 @@ MyParticlePositionAssetPanel::MyParticlePositionAssetPanel(wxWindow* parent)
     RenameAssetButton->Show(false);
     DisplayButton->Show(false);
     DisplayButton->Enable(false);
+    ExportButton->Show(true);
     Layout( );
 
     Label0Title->SetLabel("");
@@ -354,7 +356,7 @@ void MyParticlePositionAssetPanel::NewFromParentClick(wxCommandEvent& event) {
 }
 
 void MyParticlePositionAssetPanel::ImportAssetClick(wxCommandEvent& event) {
-    // Get a text file which should have asset_id x_pos y_pos
+    // Get a text file which should have image_asset_id x_pos y_pos
 
     wxFileDialog openFileDialog(this, _("Open TXT file"), "", "", "TXT files (*.txt)|*.txt;*.txt", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -368,6 +370,18 @@ void MyParticlePositionAssetPanel::ImportAssetClick(wxCommandEvent& event) {
         input_file.Open(openFileDialog.GetPath( ));
         MyErrorDialog* my_error = new MyErrorDialog(this);
         long           image_asset_id;
+
+        // Create a new group named after the imported file (without extension)
+        wxString new_group_name = openFileDialog.GetFilename( ).BeforeLast('.');
+        if ( new_group_name.IsEmpty( ) )
+            new_group_name = openFileDialog.GetFilename( );
+        current_group_number++;
+        all_groups_list->AddGroup(new_group_name);
+        all_groups_list->groups[all_groups_list->number_of_groups - 1].id = current_group_number;
+        AddGroupToDatabase(current_group_number, new_group_name.ToUTF8( ).data( ), current_group_number);
+        long new_group_index = all_groups_list->number_of_groups - 1;
+
+        wxArrayLong imported_asset_indices;
 
         ParticlePositionAsset temp_asset;
         temp_asset.pick_job_id = -1;
@@ -387,7 +401,6 @@ void MyParticlePositionAssetPanel::ImportAssetClick(wxCommandEvent& event) {
 
             if ( current_line.IsEmpty( ) == false && current_line.StartsWith("#") == false ) {
                 current_tokenizer.SetString(current_line);
-                wxPrintf("Current Line = %s, number_tokens = %li\n", current_line, current_tokenizer.CountTokens( ));
 
                 if ( current_tokenizer.CountTokens( ) < 3 ) {
                     my_error->ErrorText->AppendText(wxString::Format(wxT("Line %li contains less than 3 (%li) values and will be ignored\n"), counter, current_tokenizer.CountTokens( )));
@@ -440,6 +453,11 @@ void MyParticlePositionAssetPanel::ImportAssetClick(wxCommandEvent& event) {
                                     AddAsset(&temp_asset);
                                     //main_frame->current_project.database.AddNextParticlePositionAsset(temp_asset.asset_id, temp_asset.parent_id, temp_asset.pick_job_id, temp_asset.x_position, temp_asset.y_position);
                                     main_frame->current_project.database.AddNextParticlePositionAsset(&temp_asset);
+
+                                    // Track this asset for the new group
+                                    long new_asset_index = all_assets_list->number_of_assets - 1;
+                                    all_groups_list->groups[new_group_index].AddMember(new_asset_index);
+                                    imported_asset_indices.Add(new_asset_index);
                                 }
                             }
                         }
@@ -452,9 +470,20 @@ void MyParticlePositionAssetPanel::ImportAssetClick(wxCommandEvent& event) {
 
         main_frame->current_project.database.EndParticlePositionAssetInsert( );
 
+        // Populate the new group in the database
+        if ( imported_asset_indices.GetCount( ) > 0 ) {
+            InsertArrayofGroupMembersToDatabase(new_group_index, &imported_asset_indices, NULL);
+        }
+        else {
+            // Nothing was imported; remove the empty group
+            all_groups_list->RemoveGroup(new_group_index);
+            RemoveGroupFromDatabase(current_group_number);
+            current_group_number--;
+        }
+
         my_dialog->Destroy( );
 
-        // errros?
+        // errors?
 
         if ( have_errors == true ) {
             my_error->ShowModal( );
@@ -462,6 +491,23 @@ void MyParticlePositionAssetPanel::ImportAssetClick(wxCommandEvent& event) {
 
         my_error->Destroy( );
 
+        FillGroupList( );
+        FillContentsList( );
+        DirtyGroups( );
+        main_frame->RecalculateAssetBrowser( );
+
         is_dirty = true;
     }
+}
+
+void MyParticlePositionAssetPanel::OnExportClick(wxCommandEvent& event) {
+    if ( ReturnNumberOfAssets( ) == 0 ) {
+        wxMessageBox(wxT("No particle positions to export."), wxT("Export"),
+                     wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    MyPickingJobExportDialog* dialog = new MyPickingJobExportDialog(this);
+    dialog->ShowModal( );
+    dialog->Destroy( );
 }
