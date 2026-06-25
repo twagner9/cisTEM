@@ -110,6 +110,7 @@ class AutoRefine3DPanelParent : public JobPanel
 		wxRadioButton* LowPassMaskNoRadio;
 		wxStaticText* FilterResolutionStaticText;
 		NumericTextCtrl* MaskFilterResolutionText;
+		wxStaticText* m_staticText32;
 		wxStaticText* EnableBlushStaticText;
 		wxRadioButton* EnableBlushYesButton;
 		wxRadioButton* EnableBlushNoButton;

@@ -1384,6 +1384,15 @@ Refine3DPanel::Refine3DPanel( wxWindow* parent, wxWindowID id, const wxPoint& po
 	MaskFilterResolutionText = new NumericTextCtrl( ExpertPanel, wxID_ANY, wxT("20.00"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer1->Add( MaskFilterResolutionText, 0, wxALL, 5 );
 
+	m_staticText177 = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush Settings"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText177->Wrap( -1 );
+	m_staticText177->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, true, wxT("Sans") ) );
+
+	fgSizer1->Add( m_staticText177, 0, wxALL, 5 );
+
+
+	fgSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+
 	EnableBlushStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Enable Blush Denoising?"), wxDefaultPosition, wxDefaultSize, 0 );
 	EnableBlushStaticText->Wrap( -1 );
 	EnableBlushStaticText->Enable( false );
@@ -1399,6 +1408,7 @@ Refine3DPanel::Refine3DPanel( wxWindow* parent, wxWindowID id, const wxPoint& po
 	bSizer97->Add( EnableBlushYesButton, 0, wxALL, 5 );
 
 	EnableBlushNoButton = new wxRadioButton( ExpertPanel, wxID_ANY, wxT("No"), wxDefaultPosition, wxDefaultSize, 0 );
+	EnableBlushNoButton->SetValue( true );
 	EnableBlushNoButton->Enable( false );
 
 	bSizer97->Add( EnableBlushNoButton, 0, wxALL, 5 );
@@ -1406,9 +1416,10 @@ Refine3DPanel::Refine3DPanel( wxWindow* parent, wxWindowID id, const wxPoint& po
 
 	fgSizer1->Add( bSizer97, 1, wxEXPAND, 5 );
 
-	BlushThreadsStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush threads: "), wxDefaultPosition, wxDefaultSize, 0 );
+	BlushThreadsStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("\tBlush threads: "), wxDefaultPosition, wxDefaultSize, 0 );
 	BlushThreadsStaticText->Wrap( -1 );
 	BlushThreadsStaticText->Enable( false );
+	BlushThreadsStaticText->SetToolTip( wxT("A value between 4 and 16 is often plenty; be wary of using too many threads when on a shared system to prevent demanding too many threads for this process.") );
 
 	fgSizer1->Add( BlushThreadsStaticText, 0, wxALL, 5 );
 
@@ -1423,7 +1434,7 @@ Refine3DPanel::Refine3DPanel( wxWindow* parent, wxWindowID id, const wxPoint& po
 
 	fgSizer1->Add( bSizer98, 1, wxEXPAND, 5 );
 
-	BlushBatchSizeStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("Blush Batch Size: "), wxDefaultPosition, wxDefaultSize, 0 );
+	BlushBatchSizeStaticText = new wxStaticText( ExpertPanel, wxID_ANY, wxT("\tBlush Batch Size: "), wxDefaultPosition, wxDefaultSize, 0 );
 	BlushBatchSizeStaticText->Wrap( -1 );
 	BlushBatchSizeStaticText->Enable( false );
 	BlushBatchSizeStaticText->SetToolTip( wxT("Smaller batch sizes give better inference (de-noising), but larger batch sizes are faster. ") );

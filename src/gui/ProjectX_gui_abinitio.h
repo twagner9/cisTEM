@@ -110,6 +110,7 @@ class AbInitio3DPanelParent : public JobPanel
 		wxStaticText* m_staticText662;
 		wxStaticText* m_staticText663;
 		wxSpinCtrl* ImagesPerClassSpinCtrl;
+		wxStaticText* m_staticText34;
 		wxStaticText* EnableBlushStaticText;
 		wxRadioButton* EnableBlushYesButton;
 		wxRadioButton* EnableBlushNoButton;

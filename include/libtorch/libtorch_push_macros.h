@@ -16,25 +16,25 @@
 /* Push conflicting macros to a stack for later restoration. */
 #pragma push_macro("N_")
 #pragma push_macro("UNCHECKED")
-// #pragma push_macro("NONE")
-// #pragma push_macro("TEXT")
-// #pragma push_macro("INTEGER")
-// #pragma push_macro("FLOAT")
-// #pragma push_macro("BOOL")
-// #pragma push_macro("LONG")
-// #pragma push_macro("DOUBLE")
-// #pragma push_macro("CHAR")
+#pragma push_macro("NONE")
+#pragma push_macro("TEXT")
+#pragma push_macro("INTEGER")
+#pragma push_macro("FLOAT")
+#pragma push_macro("BOOL")
+#pragma push_macro("LONG")
+#pragma push_macro("DOUBLE")
+#pragma push_macro("CHAR")
 
 /* Undef the conflicting macros */
 #undef N_
 #undef UNCHECKED
-// #undef NONE
-// #undef TEXT
-// #undef INTEGE
-// #undef FLOAT
-// #undef BOOL
-// #undef LONG
-// #undef DOUBLE
+#undef NONE
+#undef TEXT
+#undef INTEGE
+#undef FLOAT
+#undef BOOL
+#undef LONG
+#undef DOUBLE
 
 #endif // cisTEM_USING_LIBTORCH
 #endif // _INCLUDE_LIBTORCH_LIBTORCH_PUSH_MACROS_H_

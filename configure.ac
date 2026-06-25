@@ -195,6 +195,21 @@ AC_ARG_ENABLE(mkl, AS_HELP_STRING([--disable-mkl],[Do not use the Intel MKL]), [
 # Check for LibTorch support for ML-based tools (e.g., blush regularization)
 AX_LIBTORCH
 
+# Now check if blush was requested in addition to libtorch
+AC_ARG_ENABLE(blush, AS_HELP_STRING([--enable-blush],[Compile with LibTorch for 3D refinement [default=no]]),
+[enable_blush="$enableval"],
+[enable_blush="no"]
+)
+
+if test "x$enable_blush" = "xyes" && test "x$use_libtorch" = "xyes"; then
+		AC_DEFINE([cisTEM_USING_BLUSH], [1], [Define the Blush flag])
+		AC_MSG_NOTICE([Blush: using LibTorch path: $libtorch_path])
+	fi
+	AM_CONDITIONAL([ENABLE_BLUSH], [test "x$enable_blush" = "xyes"])
+
+# Specifically activate blush if needed.
+# submodule_Blush
+
 # wx-config 
 
 WXCONFIG=wx-config
@@ -230,9 +245,7 @@ AC_ARG_ENABLE(debugmode, AS_HELP_STRING([--enable-debugmode],[Compile in debug m
     AC_DEFINE([NDEBUG], [], [Define the nodebug flag for either g++ or clang builds])
 ])
 
-# LibTorch and Blush checks
-submodule_Blush
-  
+
 
 ###############################
 # BEGIN CUDA CHECKS AND SETS
